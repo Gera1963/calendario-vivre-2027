@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#f7f3f8">
+<title>Vivrê · 2027</title>
+<style>
+:root{
+  --roxo:#765b9b; --roxo-escuro:#50376f; --roxo-medio:#927bb0;
+  --lilas:#f0e9f5; --lilas-borda:#cbb8dc;
+  --ouro:#e6b54c; --ouro-claro:#fff2d7; --ouro-borda:#d99e27;
+  --fundo:#faf8fb; --papel:#fff; --texto:#382c43; --cinza:#a99eae;
+  --linha:#e6dfe9; --sombra:0 16px 42px rgba(69,48,85,.18);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fundo);color:var(--texto);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:linear-gradient(110deg,#fff 0%,#f7f1fa 65%,#fdf8ed 100%);border-bottom:3px solid #e8c66e}
+.topo{max-width:1440px;margin:auto;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.logo{width:min(330px,42vw);height:auto;object-fit:contain;object-position:left center}
+.ano{display:flex;align-items:center;gap:20px;color:var(--roxo-escuro);font-size:clamp(24px,3vw,38px);font-weight:750;white-space:nowrap}
+.ano button,.mes button{border:0;background:transparent;color:var(--roxo);font-size:28px;cursor:pointer;border-radius:50%;width:42px;height:42px}
+.ano button:hover,.mes button:hover{background:var(--lilas)}
+main{max-width:1440px;margin:0 auto;padding:18px 24px 28px}
+.barra{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+.mes{display:flex;align-items:center;gap:14px}
+.mes h1{font-size:clamp(25px,3vw,36px);margin:0;color:var(--roxo-escuro);min-width:190px}
+.legenda{display:flex;gap:20px;flex-wrap:wrap;font-size:14px;color:var(--roxo-escuro)}
+.legenda span{display:flex;align-items:center;gap:8px}
+.ponto{display:inline-block;width:12px;height:12px;border-radius:50%;flex:none}
+.ponto.comem{background:var(--roxo-medio)}
+.ponto.evento{background:var(--ouro)}
+.ponto.feriado{background:var(--roxo-medio)}
+.calendario{background:#fff;border:1px solid var(--lilas-borda);border-radius:15px;overflow:hidden;box-shadow:0 5px 20px rgba(67,45,80,.06)}
+.grade{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.cab-dia{background:var(--roxo);color:white;text-align:center;font-weight:650;padding:13px 4px;font-size:15px;border-right:1px solid rgba(255,255,255,.22)}
+.celula{min-height:112px;border-right:1px solid var(--linha);border-top:1px solid var(--linha);padding:9px 8px;text-align:left;background:#fff;cursor:pointer;position:relative;transition:background .15s}
+.celula:nth-child(7n){border-right:0}
+.celula:hover{background:#fbf8fd}
+.celula.fora{background:#fcfbfc;color:#b9aebf}
+.celula.feriado{background:var(--lilas);box-shadow:inset 0 0 0 1px var(--lilas-borda)}
+.celula.tem-evento{background:var(--ouro-claro);box-shadow:inset 0 0 0 2px var(--ouro-borda);border-radius:9px}
+.celula.feriado.tem-evento{background:linear-gradient(135deg,var(--lilas) 0 50%,var(--ouro-claro) 50% 100%);box-shadow:inset 0 0 0 2px var(--ouro-borda)}
+.numero{font-size:20px;font-weight:650;line-height:1.2;color:var(--roxo-escuro);display:block;margin-bottom:8px}
+.fora .numero{color:#b9aebf}
+.marcacao{display:flex;align-items:flex-start;gap:6px;font-size:12px;line-height:1.25;margin:5px 0;color:var(--roxo-escuro);overflow:hidden}
+.marcacao .ponto{margin-top:2px;width:9px;height:9px}
+.marcacao.discreta{font-size:10px;opacity:.72}
+.marcacao.evento{color:#72501a}
+.marcacao.evento .ponto{background:var(--ouro-borda)}
+.mais{font-size:11px;color:#75647e;margin:4px 0 0 15px}
+.rodape{padding:15px 2px;color:#78658b;font-size:13px}
+button:focus-visible,.celula:focus-visible{outline:3px solid #b99bd4;outline-offset:-3px}
+.overlay{position:fixed;inset:0;background:rgba(42,30,52,.34);display:none;align-items:center;justify-content:center;padding:18px;z-index:10}
+.overlay.aberto{display:flex}
+.modal{width:min(520px,100%);background:white;border-radius:18px;overflow:hidden;box-shadow:var(--sombra);animation:entra .18s ease-out}
+@keyframes entra{from{transform:translateY(10px);opacity:.6}to{transform:translateY(0);opacity:1}}
+.modal-topo{background:var(--roxo);color:#fff;padding:17px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.modal-topo strong{font-size:20px}
+.fechar{border:0;background:transparent;color:white;font-size:28px;cursor:pointer;line-height:1}
+.modal-corpo{padding:18px 20px 20px}
+.bloco{display:flex;gap:13px;align-items:flex-start;padding:9px 0}
+.bolao{width:16px;height:16px;border-radius:50%;margin-top:5px;flex:none;background:var(--roxo-medio)}
+.bolao.evento{background:var(--ouro)}
+.bloco strong{font-size:17px;color:var(--roxo-escuro)}
+.bloco p{margin:4px 0 0;font-size:14px;line-height:1.4;color:#675a6d}
+.separador{border:0;border-top:1px solid var(--linha);margin:10px 0}
+.acoes{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}
+.acao{border:1px solid var(--roxo);background:white;color:var(--roxo-escuro);padding:10px 15px;border-radius:11px;font-weight:650;cursor:pointer}
+.acao.principal{background:var(--ouro);border-color:var(--ouro);color:#4d3917}
+.acao.perigo{border-color:#c98a8a;color:#9b4b4b}
+.vazio{color:#7f7185;font-size:14px;padding:8px 0}
+.formulario{display:none;border-top:1px solid var(--linha);margin-top:14px;padding-top:14px}
+.formulario.aberto{display:block}
+.formulario label{display:block;font-size:13px;color:#66576f;margin:10px 0 5px}
+.formulario input,.formulario textarea{width:100%;border:1px solid #d9cedf;border-radius:9px;padding:10px;font:inherit;color:var(--texto);background:#fff}
+.formulario textarea{min-height:65px;resize:vertical}
+.cores{display:flex;gap:10px;margin-top:7px}
+.cor{width:27px;height:27px;border-radius:50%;border:2px solid white;box-shadow:0 0 0 1px #b9a9c2;cursor:pointer}
+.cor.selecionada{box-shadow:0 0 0 3px var(--roxo)}
+@media(max-width:700px){
+ .topo{padding:9px 14px;gap:8px}.logo{width:48%;max-width:210px}.ano{gap:3px;font-size:24px}.ano button{width:32px;height:36px;font-size:23px}
+ main{padding:14px 10px 22px}.barra{align-items:flex-start;gap:8px}.mes{gap:5px}.mes h1{font-size:26px;min-width:145px}.mes button{width:34px;height:36px;font-size:23px}
+ .legenda{font-size:11px;gap:12px}.ponto{width:10px;height:10px}
+ .cab-dia{font-size:12px;padding:10px 1px}
+ .celula{min-height:77px;padding:6px 4px}.numero{font-size:16px;margin-bottom:6px}
+ .marcacao{font-size:10px;gap:4px;margin:4px 0}.marcacao .ponto{width:7px;height:7px}
+ .mais{font-size:9px;margin-left:11px}
+ .overlay{align-items:flex-end;padding:0}.modal{border-radius:18px 18px 0 0;width:100%;max-height:82vh;overflow:auto}.modal-topo{padding:15px 17px}.modal-topo strong{font-size:18px}.modal-corpo{padding:14px 17px 22px}
+ .acoes{gap:7px}.acao{padding:10px 12px;font-size:13px}
+}
+@media(max-width:390px){.logo{width:45%}.ano{font-size:21px}.mes h1{font-size:23px;min-width:132px}.celula{min-height:68px}.marcacao{font-size:9px}}
+
+/* Ajustes visuais — versão compacta */
+header{border-bottom:2px solid #e8d9b7}
+.topo{padding:5px 20px;gap:12px}
+.logo{width:min(190px,30vw);max-height:76px}
+.ano{font-size:clamp(22px,2.4vw,30px);gap:10px}
+.ano button{width:34px;height:34px;font-size:24px}
+main{padding:8px 18px 12px}
+.barra{margin-bottom:8px}
+.mes h1{font-size:clamp(23px,2.5vw,30px)}
+.cab-dia{padding:8px 3px;font-size:14px}
+.celula{min-height:clamp(72px, calc((100vh - 220px)/6), 104px);padding:7px 7px}
+.numero{font-size:18px;font-weight:750;text-align:left;margin:0 0 6px 3px}
+.marcacao{font-size:11px;line-height:1.2;margin:3px 0}
+.marcacao.evento{
+ display:block;width:100%;padding:4px 6px;border-radius:6px;
+ font-size:11px;font-weight:750;line-height:1.15;overflow-wrap:anywhere;
+}
+.marcacao.evento .ponto{display:none}
+.rodape{display:none}
+@media(max-width:700px){
+ .topo{padding:4px 10px;gap:6px}.logo{width:min(145px,39vw);max-height:58px}
+ .ano{font-size:21px;gap:2px}.ano button{width:29px;height:32px;font-size:22px}
+ main{padding:8px 7px 12px}.barra{margin-bottom:7px;gap:7px}
+ .mes{gap:3px}.mes h1{font-size:23px;min-width:130px}.mes button{width:30px;height:32px;font-size:21px}
+ .legenda{font-size:10px;gap:8px}
+ .cab-dia{font-size:11px;padding:8px 1px}
+ .celula{min-height:clamp(62px, calc((100svh - 220px)/6), 82px);padding:5px 3px}
+ .numero{font-size:15px;margin:0 0 5px 2px}
+ .marcacao{font-size:9px;line-height:1.15;margin:3px 0;gap:3px}
+ .marcacao .ponto{width:6px;height:6px}
+ .marcacao.evento{font-size:9px;padding:3px 3px;border-radius:5px}
+ .mais{font-size:9px;margin-left:2px}
+ .overlay{align-items:flex-end;padding:0}.modal{border-radius:18px 18px 0 0;width:100%;max-height:82vh;overflow:auto}
+ .modal-topo{padding:15px 17px}.modal-topo strong{font-size:18px}.modal-corpo{padding:14px 17px 22px}
+ .acoes{gap:7px}.acao{padding:10px 12px;font-size:13px}
+}
+@media(max-width:390px){
+ .logo{width:36vw}.ano{font-size:19px}.mes h1{font-size:21px;min-width:118px}
+ .celula{min-height:62px}.marcacao.evento{font-size:8px;padding:3px 2px}
+}
+
+
+/* Alinhamento fixo dos números: a posição não depende dos eventos */
+.celula{position:relative;padding-top:29px!important}
+.numero{
+ position:absolute!important;
+ top:4px!important;
+ left:7px!important;
+ margin:0!important;
+ padding:0!important;
+ line-height:1!important;
+ text-align:left!important;
+}
+@media(max-width:700px){
+ .celula{padding-top:25px!important}
+ .numero{top:4px!important;left:4px!important}
+}
+@media(max-width:390px){
+ .celula{padding-top:23px!important}
+ .numero{top:3px!important;left:4px!important}
+}
+
+
+/* Confirmação integrada usando o elemento nativo dialog (camada superior do navegador) */
+.confirm-dialog{position:fixed;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;padding:18px;border:0;background:transparent;overflow:auto;}
+.confirm-dialog[open]{display:flex;align-items:center;justify-content:center;}
+.confirm-dialog::backdrop{background:rgba(42,30,52,.48)}
+.confirm-modal{width:min(390px,100%);background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 18px 48px rgba(40,25,50,.28);animation:entra .16s ease-out}
+.confirm-topo{background:var(--roxo);color:#fff;padding:15px 18px;font-size:18px;font-weight:750}
+.confirm-corpo{padding:18px;color:var(--texto);font-size:15px;line-height:1.45}
+.confirm-acoes{display:flex;justify-content:flex-end;gap:9px;padding:0 18px 18px}
+.confirm-acoes button{min-height:42px}
+.confirm-acoes .confirm-excluir{background:#a95656;border-color:#a95656;color:#fff}
+@media(max-width:700px){.confirm-dialog{align-items:flex-end!important;padding:0}.confirm-modal{width:100%;border-radius:18px 18px 0 0}.confirm-topo{padding:15px 17px}.confirm-corpo{padding:17px}.confirm-acoes{padding:0 17px 22px}}
+
+
+/* Acesso seguro e sincronização em nuvem */
+.acesso{max-width:1440px;margin:0 auto;padding:9px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#fff;border-bottom:1px solid var(--linha);font-size:13px;color:var(--roxo-escuro)}
+.acesso .grupo{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.acesso button{border:1px solid var(--roxo);background:var(--roxo);color:#fff;border-radius:9px;padding:8px 13px;font:inherit;font-weight:700;cursor:pointer}
+.acesso button.secundario{background:#fff;color:var(--roxo-escuro)}
+@media(max-width:700px){.acesso{padding:8px 10px;font-size:12px}.acesso button{padding:8px 10px}}
+</style>
+</head>
+<body>
+<header>
+ <div class="topo">
+  <img class="logo" src="data:image/png;base64,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" alt="Vivrê — Acolhimento com amor, viver com tranquilidade">
+  <div class="ano"><button aria-label="Ano anterior" id="anoMenos">‹</button><span id="ano">2027</span><button aria-label="Próximo ano" id="anoMais">›</button></div>
+ </div>
+</header>
+<div class="acesso" id="acessoBarra"><div class="grupo"><span id="acessoStatus">Conectando ao calendário...</span></div><div class="grupo"><button id="entrarGoogle" type="button">Entrar com Google</button><button id="sairGoogle" class="secundario" type="button" hidden>Sair</button></div></div>
+<main>
+ <div class="barra">
+  <div class="mes"><button id="mesMenos" aria-label="Mês anterior">‹</button><h1 id="nomeMes">Janeiro</h1><button id="mesMais" aria-label="Próximo mês">›</button></div>
+  <div class="legenda">
+   <span><i class="ponto comem"></i> Data comemorativa</span>
+   <span><i class="ponto evento"></i> Evento do Vivrê</span>
+  </div>
+ </div>
+ <section class="calendario" aria-label="Calendário mensal">
+  <div class="grade" id="grade"></div>
+ </section>
+ <div class="rodape">Vivrê · Acolhimento com amor, viver com tranquilidade</div>
+</main>
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="tituloModal">
+ <section class="modal">
+  <div class="modal-topo"><strong id="tituloModal"></strong><button class="fechar" id="fechar" aria-label="Fechar">×</button></div>
+  <div class="modal-corpo">
+   <div id="lista"></div>
+   <div class="acoes" id="acoes"></div>
+   <div class="formulario" id="formulario">
+    <label for="nomeEvento">Nome do evento</label><input id="nomeEvento" maxlength="90" placeholder="Digite o nome do evento">
+    <label for="corEvento">Cor do evento</label>
+    <input id="corEvento" type="color" value="#e6b54c" style="width:72px;height:42px;padding:4px;cursor:pointer">
+    <div class="acoes"><button class="acao principal" id="salvar">Salvar evento</button><button class="acao" id="cancelarForm">Cancelar</button></div>
+   </div>
+  </div>
+ </section>
+</div>
+<dialog class="confirm-dialog" id="confirmOverlay" aria-labelledby="confirmTitulo">
+ <section class="confirm-modal">
+  <div class="confirm-topo" id="confirmTitulo">Excluir evento</div>
+  <div class="confirm-corpo">Tem certeza de que deseja excluir este evento? Esta ação não poderá ser desfeita.</div>
+  <div class="confirm-acoes">
+   <button class="acao" id="confirmCancelar" type="button">Cancelar</button>
+   <button class="acao confirm-excluir" id="confirmExcluir" type="button">Excluir evento</button>
+  </div>
+ </section>
+</dialog>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
+import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
+const firebaseConfig={apiKey:"AIzaSyAIyh84O0-qs76CqynbwywIEiK1RnZxeyg",authDomain:"vivre-calendario-2027---testes.firebaseapp.com",projectId:"vivre-calendario-2027---testes",storageBucket:"vivre-calendario-2027---testes.firebasestorage.app",messagingSenderId:"441498005022",appId:"1:441498005022:web:4beda9da6c94a82eb6080f"};
+const firebaseApp=initializeApp(firebaseConfig), auth=getAuth(firebaseApp), db=getFirestore(firebaseApp), provider=new GoogleAuthProvider(), eventosRef=doc(db,"calendario","2027");
+
+const meses=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const dias=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+let ano=2027, mes=0, selecionada=null, editando=null, corEscolhida="#e6b54c";
+const comemorativas={
+ "2027-01-01":[{nome:"Confraternização Universal",tipo:"feriado",descricao:"Feriado nacional."}],
+ "2027-01-06":[{nome:"Dia de Reis",tipo:"discreta"}],
+ "2027-01-20":[{nome:"São Sebastião",tipo:"feriado",descricao:"Feriado municipal de Ribeirão Preto."}],
+ "2027-01-24":[{nome:"Dia do Aposentado",tipo:"comemorativa"}],
+ "2027-01-25":[{nome:"Dia do Carteiro",tipo:"comemorativa"}],
+ "2027-01-30":[{nome:"Dia da Saudade",tipo:"comemorativa"}],
+
+ "2027-02-04":[{nome:"Dia Mundial de Combate ao Câncer",tipo:"comemorativa"}],
+ "2027-02-08":[{nome:"Segunda-feira de Carnaval",tipo:"comemorativa"}],
+ "2027-02-09":[{nome:"Carnaval",tipo:"comemorativa"}],
+ "2027-02-10":[{nome:"Quarta-feira de Cinzas",tipo:"comemorativa"}],
+ "2027-02-28":[{nome:"Dia Mundial das Doenças Raras",tipo:"comemorativa"}],
+
+ "2027-03-08":[{nome:"Dia Internacional da Mulher",tipo:"comemorativa"}],
+ "2027-03-15":[{nome:"Dia do Consumidor",tipo:"comemorativa"}],
+ "2027-03-20":[{nome:"Início do Outono",tipo:"comemorativa"}],
+ "2027-03-21":[{nome:"Dia Mundial da Síndrome de Down",tipo:"comemorativa"}],
+ "2027-03-22":[{nome:"Dia Mundial da Água",tipo:"comemorativa"}],
+ "2027-03-26":[{nome:"Sexta-feira Santa",tipo:"feriado",descricao:"Feriado religioso."}],
+ "2027-03-28":[{nome:"Páscoa",tipo:"comemorativa"}],
+ "2027-03-31":[{nome:"Dia da Saúde e Nutrição",tipo:"comemorativa"}],
+
+ "2027-04-02":[{nome:"Dia Mundial de Conscientização do Autismo",tipo:"comemorativa"}],
+ "2027-04-06":[{nome:"Dia Mundial da Atividade Física",tipo:"comemorativa"}],
+ "2027-04-07":[{nome:"Dia Mundial da Saúde",tipo:"comemorativa"}],
+ "2027-04-18":[{nome:"Dia Nacional do Livro Infantil",tipo:"comemorativa"}],
+ "2027-04-19":[{nome:"Dia dos Povos Indígenas",tipo:"comemorativa"}],
+ "2027-04-21":[{nome:"Tiradentes",tipo:"feriado",descricao:"Feriado nacional."}],
+ "2027-04-22":[{nome:"Descobrimento do Brasil",tipo:"comemorativa"},{nome:"Dia da Terra",tipo:"comemorativa"}],
+ "2027-04-23":[{nome:"Dia Mundial do Livro",tipo:"comemorativa"}],
+
+ "2027-05-01":[{nome:"Dia do Trabalho",tipo:"feriado",descricao:"Feriado nacional."}],
+ "2027-05-09":[{nome:"Dia das Mães",tipo:"comemorativa"}],
+ "2027-05-12":[{nome:"Dia do Enfermeiro",tipo:"comemorativa"}],
+ "2027-05-15":[{nome:"Dia Internacional da Família",tipo:"comemorativa"}],
+ "2027-05-24":[{nome:"Dia Nacional do Café",tipo:"comemorativa"}],
+ "2027-05-27":[{nome:"Corpus Christi",tipo:"feriado",descricao:"Feriado municipal em Ribeirão Preto."}],
+
+ "2027-06-05":[{nome:"Dia Mundial do Meio Ambiente",tipo:"comemorativa"}],
+ "2027-06-12":[{nome:"Dia dos Namorados",tipo:"comemorativa"}],
+ "2027-06-15":[{nome:"Dia Mundial de Conscientização da Violência contra a Pessoa Idosa",tipo:"comemorativa"}],
+ "2027-06-19":[{nome:"Aniversário de Ribeirão Preto",tipo:"feriado",descricao:"Feriado municipal."}],
+ "2027-06-21":[{nome:"Início do Inverno",tipo:"comemorativa"}],
+ "2027-06-24":[{nome:"Dia de São João",tipo:"comemorativa"},{nome:"Dia Mundial de Prevenção de Quedas",tipo:"comemorativa"}],
+
+ "2027-07-02":[{nome:"Dia do Bombeiro Brasileiro",tipo:"comemorativa"}],
+ "2027-07-07":[{nome:"Dia Mundial do Chocolate",tipo:"comemorativa"}],
+ "2027-07-08":[{nome:"Dia do Panificador",tipo:"comemorativa"}],
+ "2027-07-09":[{nome:"Revolução Constitucionalista",tipo:"feriado",descricao:"Feriado estadual em São Paulo."}],
+ "2027-07-10":[{nome:"Dia da Pizza",tipo:"comemorativa"}],
+ "2027-07-13":[{nome:"Dia Mundial do Rock",tipo:"comemorativa"}],
+ "2027-07-20":[{nome:"Dia do Amigo",tipo:"comemorativa"}],
+ "2027-07-25":[{nome:"Dia do Motorista",tipo:"comemorativa"}],
+ "2027-07-26":[{nome:"Dia dos Avós",tipo:"comemorativa"}],
+ "2027-07-28":[{nome:"Dia do Agricultor",tipo:"comemorativa"}],
+
+ "2027-08-05":[{nome:"Dia Nacional da Saúde",tipo:"comemorativa"}],
+ "2027-08-08":[{nome:"Dia dos Pais",tipo:"comemorativa"}],
+ "2027-08-11":[{nome:"Dia do Estudante",tipo:"comemorativa"}],
+ "2027-08-19":[{nome:"Dia Mundial da Fotografia",tipo:"comemorativa"}],
+ "2027-08-22":[{nome:"Dia do Folclore",tipo:"comemorativa"}],
+ "2027-08-25":[{nome:"Dia do Soldado",tipo:"comemorativa"}],
+ "2027-08-27":[{nome:"Dia do Psicólogo",tipo:"comemorativa"}],
+ "2027-08-31":[{nome:"Dia do Nutricionista",tipo:"comemorativa"}],
+
+ "2027-09-01":[{nome:"Início do Setembro Amarelo",tipo:"comemorativa"}],
+ "2027-09-05":[{nome:"Dia da Amazônia",tipo:"comemorativa"}],
+ "2027-09-07":[{nome:"Independência do Brasil",tipo:"feriado",descricao:"Feriado nacional."}],
+ "2027-09-08":[{nome:"Dia Mundial da Alfabetização",tipo:"comemorativa"}],
+ "2027-09-15":[{nome:"Dia do Cliente",tipo:"comemorativa"}],
+ "2027-09-21":[{nome:"Dia da Árvore",tipo:"comemorativa"},{nome:"Dia de Conscientização sobre a Doença de Alzheimer",tipo:"comemorativa"}],
+ "2027-09-22":[{nome:"Início da Primavera",tipo:"comemorativa"}],
+ "2027-09-27":[{nome:"Dia de Cosme e Damião",tipo:"comemorativa"}],
+
+ "2027-10-01":[{nome:"Dia Nacional e Internacional da Pessoa Idosa",tipo:"comemorativa"},{nome:"Início do Outubro Rosa",tipo:"comemorativa"}],
+ "2027-10-04":[{nome:"Dia Mundial dos Animais",tipo:"comemorativa"}],
+ "2027-10-12":[{nome:"Dia das Crianças",tipo:"comemorativa"},{nome:"Nossa Senhora Aparecida",tipo:"feriado",descricao:"Feriado nacional."}],
+ "2027-10-15":[{nome:"Dia do Professor",tipo:"comemorativa"}],
+ "2027-10-18":[{nome:"Dia do Médico",tipo:"comemorativa"}],
+ "2027-10-25":[{nome:"Dia do Dentista",tipo:"comemorativa"}],
+ "2027-10-28":[{nome:"Dia do Servidor Público",tipo:"comemorativa"}],
+ "2027-10-31":[{nome:"Dia do Saci",tipo:"comemorativa"},{nome:"Halloween",tipo:"comemorativa"}],
+
+ "2027-11-02":[{nome:"Finados",tipo:"feriado",descricao:"Feriado nacional."}],
+ "2027-11-15":[{nome:"Proclamação da República",tipo:"feriado",descricao:"Feriado nacional."}],
+ "2027-11-20":[{nome:"Dia Nacional de Zumbi e da Consciência Negra",tipo:"feriado",descricao:"Feriado nacional."}],
+ "2027-11-22":[{nome:"Dia do Músico",tipo:"comemorativa"}],
+ "2027-11-25":[{nome:"Dia Nacional do Doador de Sangue",tipo:"comemorativa"}],
+
+ "2027-12-01":[{nome:"Dia Mundial de Luta contra a AIDS",tipo:"comemorativa"}],
+ "2027-12-02":[{nome:"Dia Nacional do Samba",tipo:"comemorativa"}],
+ "2027-12-03":[{nome:"Dia Internacional da Pessoa com Deficiência",tipo:"comemorativa"}],
+ "2027-12-10":[{nome:"Dia dos Direitos Humanos",tipo:"comemorativa"}],
+ "2027-12-13":[{nome:"Dia Nacional do Forró",tipo:"comemorativa"}],
+ "2027-12-21":[{nome:"Início do Verão",tipo:"comemorativa"}],
+ "2027-12-25":[{nome:"Natal",tipo:"feriado",descricao:"Feriado nacional."}],
+ "2027-12-31":[{nome:"Véspera de Ano-Novo",tipo:"comemorativa"}]
+};
+let eventos={};
+let usuarioAtual=null, pararEscuta=null, carregandoEventos=false;
+const chave=(a,m,d)=>`${a}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+const el=id=>document.getElementById(id);
+let acaoConfirmada=null;
+function pedirConfirmacao(acao){
+ acaoConfirmada=acao;
+ const dialogo=el("confirmOverlay");
+ if(!dialogo.open)dialogo.showModal();
+ el("confirmCancelar").focus();
+}
+function fecharConfirmacao(){
+ const dialogo=el("confirmOverlay");
+ if(dialogo.open)dialogo.close();
+ acaoConfirmada=null;
+}
+el("confirmCancelar").addEventListener("click",fecharConfirmacao);
+el("confirmExcluir").addEventListener("click",()=>{
+ const executar=acaoConfirmada;
+ fecharConfirmacao();
+ if(executar)executar();
+});
+el("confirmOverlay").addEventListener("click",e=>{
+ if(e.target===el("confirmOverlay"))fecharConfirmacao();
+});
+el("confirmOverlay").addEventListener("close",()=>{acaoConfirmada=null});
+function desenhar(){
+ el("ano").textContent=ano;el("nomeMes").textContent=meses[mes];
+ const g=el("grade");g.innerHTML="";
+ dias.forEach(d=>{const h=document.createElement("div");h.className="cab-dia";h.textContent=d;g.appendChild(h)});
+ const primeiro=new Date(ano,mes,1).getDay(), total=new Date(ano,mes+1,0).getDate(), anterior=new Date(ano,mes,0).getDate();
+ const totalCel=Math.ceil((primeiro+total)/7)*7;
+ for(let i=0;i<totalCel;i++){
+  const num=i-primeiro+1, dentro=num>0&&num<=total, dia=dentro?num:(num<=0?anterior+num:num-total);
+  const data=new Date(ano,mes+(num<=0?-1:num>total?1:0),dia), a=data.getFullYear(),m=data.getMonth(),d=data.getDate(), k=chave(a,m,d);
+  const cel=document.createElement("button");cel.type="button";cel.className="celula"+(!dentro?" fora":"");
+  const com= (comemorativas[k]||[]), ev=(eventos[k]||[]);
+  if(com.some(x=>x.tipo==="feriado"))cel.classList.add("feriado");
+  if(ev.length)cel.classList.add("tem-evento");
+  cel.innerHTML=`<span class="numero">${d}</span>`;
+  com.slice(0,2).forEach(x=>{const linha=document.createElement("span");linha.className="marcacao"+(x.tipo==="discreta"?" discreta":"");linha.innerHTML='<i class="ponto '+(x.tipo==="feriado"?"feriado":"comem")+'"></i>';linha.append(document.createTextNode(x.nome));cel.appendChild(linha)});
+  ev.slice(0,2).forEach(x=>{
+   const linha=document.createElement("span");linha.className="marcacao evento";
+   const cor=x.cor||"#e6b54c";linha.style.background=cor;
+   const rgb=cor.match(/[\da-f]{2}/gi);
+   if(rgb&&rgb.length>=3){const [r,g,b]=rgb.slice(0,3).map(v=>parseInt(v,16));linha.style.color=((r*299+g*587+b*114)/1000)>=150?"#30283a":"#ffffff";}
+   else linha.style.color="#30283a";
+   linha.textContent=x.nome;cel.appendChild(linha);
+  });
+  if(com.length+ev.length>2){const mais=document.createElement("span");mais.className="mais";mais.textContent=`+${com.length+ev.length-2} item(ns)`;cel.appendChild(mais)}
+  cel.addEventListener("click",()=>abrir(a,m,d));g.appendChild(cel);
+ }
+}
+function abrir(a,m,d){selecionada={a,m,d};editando=null;el("tituloModal").textContent=`${String(d).padStart(2,"0")} de ${meses[m]} de ${a}`;mostrarDetalhes();el("formulario").classList.remove("aberto");el("overlay").classList.add("aberto")}
+function mostrarDetalhes(){
+ const k=chave(selecionada.a,selecionada.m,selecionada.d),com=comemorativas[k]||[],ev=eventos[k]||[],lista=el("lista");lista.innerHTML="";
+ if(!usuarioAtual){lista.innerHTML="<div class=\"vazio\">Entre com a conta Google autorizada para consultar e administrar os eventos do Vivrê.</div>";el("acoes").innerHTML="";return;}
+ if(carregandoEventos){lista.innerHTML="<div class=\"vazio\">Carregando eventos compartilhados...</div>";el("acoes").innerHTML="";return;}
+ if(!com.length&&!ev.length)lista.innerHTML='<div class="vazio">Nenhuma data comemorativa ou evento cadastrado neste dia.</div>';
+ com.forEach(x=>{const b=document.createElement("div");b.className="bloco";b.innerHTML=`<i class="bolao"></i><div><strong></strong>${x.descricao?'<p></p>':''}</div>`;b.querySelector("strong").textContent=x.nome;if(x.descricao)b.querySelector("p").textContent=x.descricao;lista.appendChild(b)});
+ if(com.length&&ev.length){const hr=document.createElement("hr");hr.className="separador";lista.appendChild(hr)}
+ ev.forEach((x,i)=>{const b=document.createElement("div");b.className="bloco";b.innerHTML='<i class="bolao evento"></i><div><strong></strong></div>';b.querySelector("strong").textContent=x.nome;b.querySelector(".bolao").style.background=x.cor||"#e6b54c";lista.appendChild(b)});
+ const acoes=el("acoes");acoes.innerHTML="";
+ ev.forEach((x,i)=>{const ed=document.createElement("button");ed.className="acao";ed.textContent="Editar";ed.onclick=()=>formEvento(i);acoes.appendChild(ed);const del=document.createElement("button");del.className="acao perigo";del.textContent="Excluir";del.onclick=()=>pedirConfirmacao(async()=>{eventos[k].splice(i,1);if(!eventos[k].length)delete eventos[k];try{await persistir();mostrarDetalhes();desenhar()}catch(e){console.error(e);alert("Não foi possível excluir no calendário compartilhado. Confira a conexão e as permissões.")}});acoes.appendChild(del)});
+ const novo=document.createElement("button");novo.className="acao principal";novo.textContent="+ Novo evento";novo.onclick=()=>formEvento(null);acoes.appendChild(novo);
+}
+function formEvento(i){editando=i;const ev=i===null?null:eventos[chave(selecionada.a,selecionada.m,selecionada.d)][i];el("nomeEvento").value=ev?.nome||"";corEscolhida=ev?.cor||"#e6b54c";el("corEvento").value=corEscolhida;el("formulario").classList.add("aberto");el("nomeEvento").focus()}
+async function persistir(){
+ if(!usuarioAtual)throw new Error("Acesso não autorizado");
+ await setDoc(eventosRef,{eventos,atualizadoEm:new Date().toISOString(),atualizadoPor:usuarioAtual.email},{merge:true});
+}
+el("corEvento").addEventListener("input",()=>{corEscolhida=el("corEvento").value});
+el("salvar").onclick=async()=>{const nome=el("nomeEvento").value.trim();if(!nome){alert("Digite o nome do evento.");return}const k=chave(selecionada.a,selecionada.m,selecionada.d);eventos[k]??=[];const item={nome,cor:el("corEvento").value};if(editando===null)eventos[k].push(item);else eventos[k][editando]=item;try{await persistir();el("formulario").classList.remove("aberto");mostrarDetalhes();desenhar()}catch(e){console.error(e);alert("Não foi possível salvar no calendário compartilhado. Confira a conexão e as permissões do banco.")}};
+el("cancelarForm").onclick=()=>el("formulario").classList.remove("aberto");
+el("fechar").onclick=()=>el("overlay").classList.remove("aberto");
+el("overlay").addEventListener("click",e=>{if(e.target===el("overlay"))el("overlay").classList.remove("aberto")});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(el("confirmOverlay").open)fecharConfirmacao();else el("overlay").classList.remove("aberto")}});
+el("mesMenos").onclick=()=>{mes--;if(mes<0){mes=11;ano--}desenhar()};
+el("mesMais").onclick=()=>{mes++;if(mes>11){mes=0;ano++}desenhar()};
+el("anoMenos").onclick=()=>{ano--;desenhar()};
+el("anoMais").onclick=()=>{ano++;desenhar()};
+desenhar();
+
+const loginBtn=document.getElementById("entrarGoogle"), logoutBtn=document.getElementById("sairGoogle"), statusEl=document.getElementById("acessoStatus");
+loginBtn.onclick=async()=>{try{await signInWithPopup(auth,provider)}catch(e){if(e.code==="auth/popup-blocked"){await signInWithRedirect(auth,provider)}else{console.error(e);alert("Não foi possível entrar com Google. Tente novamente.")}}};
+logoutBtn.onclick=()=>signOut(auth);
+getRedirectResult(auth).catch(e=>console.error("Falha ao concluir entrada:",e));
+onAuthStateChanged(auth,user=>{
+ usuarioAtual=user||null; if(pararEscuta){pararEscuta();pararEscuta=null;}
+ if(user){statusEl.textContent="Conectado: "+user.email;loginBtn.hidden=true;logoutBtn.hidden=false;carregandoEventos=true;eventos={};desenhar();
+  pararEscuta=onSnapshot(eventosRef,snap=>{eventos=snap.exists()?(snap.data().eventos||{}):{};carregandoEventos=false;desenhar();if(selecionada)mostrarDetalhes()},err=>{console.error(err);carregandoEventos=false;statusEl.textContent="Erro ao acessar o banco de dados";desenhar()});
+ }else{eventos={};carregandoEventos=false;statusEl.textContent="Entre com a conta Google autorizada para acessar os eventos";loginBtn.hidden=false;logoutBtn.hidden=true;desenhar();if(selecionada)mostrarDetalhes();}
+});
+</script>
+</body>
+</html>
