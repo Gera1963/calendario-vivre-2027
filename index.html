@@ -225,7 +225,7 @@ main{padding:8px 18px 12px}
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
 import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
-const firebaseConfig={apiKey:"AIzaSyAIyh84O-qs76CqynbwywIEiK1RnZxeyg",authDomain:"vivre-calendario-2027---testes.firebaseapp.com",projectId:"vivre-calendario-2027---testes",storageBucket:"vivre-calendario-2027---testes.firebasestorage.app",messagingSenderId:"441498005022",appId:"1:441498005022:web:4beda9da6c94a82eb6080f"};
+const firebaseConfig={apiKey:"AIzaSyAIyh84O0-qs76CqynbwywIEiK1RnZxeyw",authDomain:"vivre-calendario-2027---testes.firebaseapp.com",projectId:"vivre-calendario-2027---testes",storageBucket:"vivre-calendario-2027---testes.firebasestorage.app",messagingSenderId:"441498005022",appId:"1:441498005022:web:4beda9da6c94a82eb6080f"};
 const firebaseApp=initializeApp(firebaseConfig), auth=getAuth(firebaseApp), db=getFirestore(firebaseApp), provider=new GoogleAuthProvider(), eventosRef=doc(db,"calendario","2027");
 
 const meses=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
