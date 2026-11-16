@@ -394,7 +394,28 @@ function desenhar(){
   cel.addEventListener("click",()=>abrir(a,m,d));g.appendChild(cel);
  }
 }
-function abrir(a,m,d){selecionada={a,m,d};editando=null;el("tituloModal").textContent=`${String(d).padStart(2,"0")} de ${meses[m]} de ${a}`;mostrarDetalhes();el("formulario").classList.remove("aberto");el("overlay").classList.add("aberto")}
+el("mesMenos").onclick=()=>{
+ mes--;
+ if(mes<0){mes=11;ano--;}
+ desenhar();
+};
+
+el("mesMais").onclick=()=>{
+ mes++;
+ if(mes>11){mes=0;ano++;}
+ desenhar();
+};
+
+el("anoMenos").onclick=()=>{
+ ano--;
+ desenhar();
+};
+
+el("anoMais").onclick=()=>{
+ ano++;
+ desenhar();
+};
+  function abrir(a,m,d){selecionada={a,m,d};editando=null;el("tituloModal").textContent=`${String(d).padStart(2,"0")} de ${meses[m]} de ${a}`;mostrarDetalhes();el("formulario").classList.remove("aberto");el("overlay").classList.add("aberto")}
 function mostrarDetalhes(){
  const k=chave(selecionada.a,selecionada.m,selecionada.d),com=comemorativas[k]||[],ev=eventos[k]||[],lista=el("lista");lista.innerHTML="";
  if(!usuarioAtual){lista.innerHTML="<div class=\"vazio\">Entre com a conta Google autorizada para consultar e administrar os eventos do Vivrê.</div>";el("acoes").innerHTML="";return;}
