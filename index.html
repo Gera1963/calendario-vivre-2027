@@ -438,15 +438,132 @@ async function persistir(){
  });
 }
 el("corEvento").addEventListener("input",()=>{corEscolhida=el("corEvento").value});
-el("salvar").onclick=async()=>{const nome=el("nomeEvento").value.trim();if(!nome){alert("Digite o nome do evento.");return}const k=chave(selecionada.a,selecionada.m,selecionada.d);eventos[k]??=[];const item={nome,cor:el("corEvento").value};if(editando===null)eventos[k].push(item);else eventos[k][editando]=item;try{
- await persistir();
- el("formulario").classList.remove("aberto");
- el("overlay").classList.remove("aberto");
- mostrarDetalhes();
- desenhar();
+
+el("salvar").onclick=async()=>{
+ const nome=el("nomeEvento").value.trim();
+ if(!nome){
+  alert("Digite o nome do evento.");
+  return;
+ }
+ const k=chave(selecionada.a,selecionada.m,selecionada.d);
+ eventos[k]??=[];
+ const item={nome,cor:el("corEvento").value};
+ if(editando===null)eventos[k].push(item);
+ else eventos[k][editando]=item;
+
+ try{
+  await persistir();
+  el("formulario").classList.remove("aberto");
+  el("overlay").classList.remove("aberto");
+  mostrarDetalhes();
+  desenhar();
+ }catch(e){
+  console.error(e);
+  alert("Não foi possível salvar no calendário compartilhado. Confira a conexão e as permissões do banco.");
+ }
 };
- }else{eventos={};carregandoEventos=false;statusEl.textContent="Entre com a conta Google autorizada para acessar os eventos";loginBtn.hidden=false;logoutBtn.hidden=true;desenhar();if(selecionada)mostrarDetalhes();}
+
+
+const statusEl=el("acessoStatus");
+const loginBtn=el("entrarGoogle");
+const logoutBtn=el("sairGoogle");
+
+provider.setCustomParameters({prompt:"select_account"});
+
+loginBtn.onclick=async()=>{
+ try{
+  await signInWithPopup(auth,provider);
+ }catch(e){
+  console.error("Erro no login:",e);
+  if(e.code==="auth/popup-blocked" ||
+     e.code==="auth/operation-not-supported-in-this-environment"){
+   try{
+    await signInWithRedirect(auth,provider);
+   }catch(erro){
+    console.error(erro);
+    alert("Não foi possível entrar com o Google.");
+   }
+  }else if(e.code!=="auth/popup-closed-by-user"){
+   alert("Não foi possível entrar com o Google. Confira a conexão.");
+  }
+ }
+};
+
+logoutBtn.onclick=async()=>{
+ try{
+  await signOut(auth);
+ }catch(e){
+  console.error("Erro ao sair:",e);
+  alert("Não foi possível sair da conta.");
+ }
+};
+
+getRedirectResult(auth).catch(e=>{
+ console.error("Erro no retorno do login:",e);
 });
+
+onAuthStateChanged(auth,user=>{
+ if(pararEscuta){
+  pararEscuta();
+  pararEscuta=null;
+ }
+
+ if(!user){
+  usuarioAtual=null;
+  eventos={};
+  carregandoEventos=false;
+  statusEl.textContent="Entre com a conta Google autorizada para acessar os eventos";
+  loginBtn.hidden=false;
+  logoutBtn.hidden=true;
+  desenhar();
+  if(selecionada)mostrarDetalhes();
+  return;
+ }
+
+ if((user.email||"").toLowerCase()!=="geradoregon@gmail.com"){
+  usuarioAtual=null;
+  eventos={};
+  carregandoEventos=false;
+  statusEl.textContent="Esta conta Google não está autorizada.";
+  loginBtn.hidden=false;
+  logoutBtn.hidden=true;
+  desenhar();
+  if(selecionada)mostrarDetalhes();
+  signOut(auth).catch(console.error);
+  return;
+ }
+
+ usuarioAtual=user;
+ carregandoEventos=true;
+ statusEl.textContent="Conectando ao calendário compartilhado...";
+ loginBtn.hidden=true;
+ logoutBtn.hidden=false;
+ desenhar();
+
+ pararEscuta=onSnapshot(eventosRef,snapshot=>{
+  if(snapshot.exists()){
+   const dados=snapshot.data();
+   const mapa=dados.eventos;
+   eventos=mapa&&typeof mapa==="object"&&!Array.isArray(mapa)?mapa:{};
+   statusEl.textContent="Calendário sincronizado";
+  }else{
+   eventos={};
+   statusEl.textContent="Documento do calendário não encontrado.";
+  }
+
+  carregandoEventos=false;
+  desenhar();
+  if(selecionada)mostrarDetalhes();
+
+ },erro=>{
+  console.error("Erro na sincronização:",erro);
+  carregandoEventos=false;
+  statusEl.textContent="Falha na sincronização do calendário.";
+  desenhar();
+  if(selecionada)mostrarDetalhes();
+ });
+});
+
 </script>
 </body>
 </html>
