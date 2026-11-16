@@ -429,7 +429,17 @@ function mostrarDetalhes(){
  const novo=document.createElement("button");novo.className="acao principal";novo.textContent="+ Novo evento";novo.onclick=()=>formEvento(null);acoes.appendChild(novo);
 }
 function formEvento(i){editando=i;const ev=i===null?null:eventos[chave(selecionada.a,selecionada.m,selecionada.d)][i];el("nomeEvento").value=ev?.nome||"";corEscolhida=ev?.cor||"#e6b54c";el("corEvento").value=corEscolhida;el("formulario").classList.add("aberto");el("nomeEvento").focus()}
-async function persistir(){
+el("fechar").onclick=()=>{
+ el("formulario").classList.remove("aberto");
+ el("overlay").classList.remove("aberto");
+};
+
+el("cancelarForm").onclick=()=>{
+ el("formulario").classList.remove("aberto");
+ el("overlay").classList.remove("aberto");
+};
+  
+  async function persistir(){
  if(!usuarioAtual)throw new Error("Acesso não autorizado");
  await updateDoc(eventosRef,{
    eventos:eventos,
