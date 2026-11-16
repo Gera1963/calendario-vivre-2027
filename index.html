@@ -224,7 +224,7 @@ main{padding:8px 18px 12px}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-auth.js";
-import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
+import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
 const firebaseConfig={apiKey:"AIzaSyAKEfC7MDS_FS_FS1xtLYpZ1XtYrdNQxkg",authDomain:"vivre-calendario-2027---testes.firebaseapp.com",projectId:"vivre-calendario-2027---testes",storageBucket:"vivre-calendario-2027---testes.firebasestorage.app",messagingSenderId:"441498005022",appId:"1:441498005022:web:4beda9da6c94a82eb6080f"};
 const firebaseApp=initializeApp(firebaseConfig), auth=getAuth(firebaseApp), db=getFirestore(firebaseApp), provider=new GoogleAuthProvider(), eventosRef=doc(db,"calendario","2027");
 
@@ -413,7 +413,11 @@ function mostrarDetalhes(){
    if(listaAtual.length)eventosAtualizados[k]=listaAtual;
    else delete eventosAtualizados[k];
    if(!usuarioAtual)throw new Error("Acesso não autorizado.");
-   await setDoc(eventosRef,{eventos:eventosAtualizados,atualizadoEm:new Date().toISOString(),atualizadoPor:usuarioAtual.email},{merge:true});
+   await updateDoc(eventosRef,{
+  eventos:eventosAtualizados,
+  atualizadoEm:new Date().toISOString(),
+  atualizadoPor:usuarioAtual.email
+});
    eventos=eventosAtualizados;
    mostrarDetalhes();
    desenhar();
@@ -427,28 +431,20 @@ function mostrarDetalhes(){
 function formEvento(i){editando=i;const ev=i===null?null:eventos[chave(selecionada.a,selecionada.m,selecionada.d)][i];el("nomeEvento").value=ev?.nome||"";corEscolhida=ev?.cor||"#e6b54c";el("corEvento").value=corEscolhida;el("formulario").classList.add("aberto");el("nomeEvento").focus()}
 async function persistir(){
  if(!usuarioAtual)throw new Error("Acesso não autorizado");
- await setDoc(eventosRef,{eventos,atualizadoEm:new Date().toISOString(),atualizadoPor:usuarioAtual.email},{merge:true});
+ await updateDoc(eventosRef,{
+   eventos:eventos,
+   atualizadoEm:new Date().toISOString(),
+   atualizadoPor:usuarioAtual.email
+ });
 }
 el("corEvento").addEventListener("input",()=>{corEscolhida=el("corEvento").value});
-el("salvar").onclick=async()=>{const nome=el("nomeEvento").value.trim();if(!nome){alert("Digite o nome do evento.");return}const k=chave(selecionada.a,selecionada.m,selecionada.d);eventos[k]??=[];const item={nome,cor:el("corEvento").value};if(editando===null)eventos[k].push(item);else eventos[k][editando]=item;try{await persistir();el("formulario").classList.remove("aberto");mostrarDetalhes();desenhar()}catch(e){console.error(e);alert("Não foi possível salvar no calendário compartilhado. Confira a conexão e as permissões do banco.")}};
-el("cancelarForm").onclick=()=>el("formulario").classList.remove("aberto");
-el("fechar").onclick=()=>el("overlay").classList.remove("aberto");
-el("overlay").addEventListener("click",e=>{if(e.target===el("overlay"))el("overlay").classList.remove("aberto")});
-document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(el("confirmOverlay").open)fecharConfirmacao();else el("overlay").classList.remove("aberto")}});
-el("mesMenos").onclick=()=>{mes--;if(mes<0){mes=11;ano--}desenhar()};
-el("mesMais").onclick=()=>{mes++;if(mes>11){mes=0;ano++}desenhar()};
-el("anoMenos").onclick=()=>{ano--;desenhar()};
-el("anoMais").onclick=()=>{ano++;desenhar()};
-desenhar();
-
-const loginBtn=document.getElementById("entrarGoogle"), logoutBtn=document.getElementById("sairGoogle"), statusEl=document.getElementById("acessoStatus");
-loginBtn.onclick=async()=>{try{await signInWithPopup(auth,provider)}catch(e){if(e.code==="auth/popup-blocked"){await signInWithRedirect(auth,provider)}else{console.error(e);alert("Não foi possível entrar com Google. Tente novamente.")}}};
-logoutBtn.onclick=()=>signOut(auth);
-getRedirectResult(auth).catch(e=>console.error("Falha ao concluir entrada:",e));
-onAuthStateChanged(auth,user=>{
- usuarioAtual=user||null; if(pararEscuta){pararEscuta();pararEscuta=null;}
- if(user){statusEl.textContent="Conectado: "+user.email;loginBtn.hidden=true;logoutBtn.hidden=false;carregandoEventos=true;eventos={};desenhar();
-  pararEscuta=onSnapshot(eventosRef,snap=>{eventos=snap.exists()?(snap.data().eventos||{}):{};carregandoEventos=false;desenhar();if(selecionada)mostrarDetalhes()},err=>{console.error(err);carregandoEventos=false;statusEl.textContent="Erro ao acessar o banco de dados";desenhar()});
+el("salvar").onclick=async()=>{const nome=el("nomeEvento").value.trim();if(!nome){alert("Digite o nome do evento.");return}const k=chave(selecionada.a,selecionada.m,selecionada.d);eventos[k]??=[];const item={nome,cor:el("corEvento").value};if(editando===null)eventos[k].push(item);else eventos[k][editando]=item;try{
+ await persistir();
+ el("formulario").classList.remove("aberto");
+ el("overlay").classList.remove("aberto");
+ mostrarDetalhes();
+ desenhar();
+};
  }else{eventos={};carregandoEventos=false;statusEl.textContent="Entre com a conta Google autorizada para acessar os eventos";loginBtn.hidden=false;logoutBtn.hidden=true;desenhar();if(selecionada)mostrarDetalhes();}
 });
 </script>
