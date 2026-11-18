@@ -385,7 +385,7 @@ const comemorativas={
  "2027-12-31":[{nome:"Véspera de Ano-Novo",tipo:"comemorativa"}]
 };
 let eventos={};
-let usuarioAtual=null, pararEscuta=null, carregandoEventos=false;
+let usuarioAtual=null, pararEscuta=null, pararEscutaSolicitacoes=null, pararEscutaUsuarios=null, carregandoEventos=false;
   let perfilAtual=null;
 const chave=(a,m,d)=>`${a}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
 const el=id=>document.getElementById(id);
@@ -567,11 +567,24 @@ const fecharAdmin=el("fecharAdmin");
   let solicitacaoAtual=null;
 
 administrarBtn.onclick=()=>{
+ if(perfilAtual!=="admin")return;
  adminOverlay.classList.add("aberto");
+ iniciarEscutaSolicitacoes();
+   iniciarEscutaUsuarios();
 };
 
 fecharAdmin.onclick=()=>{
  adminOverlay.classList.remove("aberto");
+
+ if(pararEscutaSolicitacoes){
+  pararEscutaSolicitacoes();
+  pararEscutaSolicitacoes=null;
+ }
+
+ if(pararEscutaUsuarios){
+  pararEscutaUsuarios();
+  pararEscutaUsuarios=null;
+ }
 };
 
 provider.setCustomParameters({prompt:"select_account"});
@@ -608,6 +621,249 @@ getRedirectResult(auth).catch(e=>{
  console.error("Erro no retorno do login:",e);
 });
 
+async function iniciarEscutaSolicitacoes(){
+ if(perfilAtual!=="admin")return;
+
+ const lista=el("listaSolicitacoes");
+
+ if(pararEscutaSolicitacoes){
+  pararEscutaSolicitacoes();
+  pararEscutaSolicitacoes=null;
+ }
+
+ lista.textContent="Carregando solicitações...";
+
+ pararEscutaSolicitacoes=onSnapshot(
+  collection(db,"solicitacoes"),
+  snapshot=>{
+   lista.innerHTML="";
+
+   if(snapshot.empty){
+    lista.textContent="Nenhuma solicitação de acesso.";
+    return;
+   }
+
+   snapshot.forEach(documento=>{
+    const pedido=documento.data();
+    const item=document.createElement("div");
+    item.className="solicitacao";
+
+    const nome=document.createElement("strong");
+    nome.textContent=pedido.nome||"Nome não informado";
+
+    const email=document.createElement("div");
+    email.textContent=pedido.email||"";
+
+    const data=document.createElement("div");
+    data.textContent=pedido.data
+     ?new Date(pedido.data).toLocaleString("pt-BR")
+     :"Data não informada";
+
+    const situacao=document.createElement("span");
+    situacao.textContent=pedido.status||"Pendente";
+
+    item.append(nome,email,data,situacao);
+
+    if(pedido.status==="pendente"){
+     const acoes=document.createElement("div");
+     acoes.className="acoes";
+     acoes.style.justifyContent="flex-end";
+
+     const aprovar=document.createElement("button");
+     aprovar.className="acao principal";
+     aprovar.type="button";
+     aprovar.textContent="Aprovar acesso";
+     aprovar.onclick=()=>aprovarSolicitacao(documento.id,pedido);
+
+     const recusar=document.createElement("button");
+     recusar.className="acao";
+     recusar.type="button";
+     recusar.textContent="Recusar solicitação";
+     recusar.onclick=()=>recusarSolicitacao(documento.id);
+
+     acoes.append(aprovar,recusar);
+     item.append(acoes);
+    }
+
+    lista.append(item);
+   });
+  },
+  erro=>{
+   console.error("Erro ao carregar solicitações:",erro);
+   lista.textContent="Não foi possível carregar as solicitações.";
+  }
+ );
+}
+
+async function aprovarSolicitacao(uid,pedido){
+ if(perfilAtual!=="admin")return;
+
+ if(!confirm("Aprovar o acesso de "+(pedido.nome||pedido.email)+" como consultor?"))return;
+
+ try{
+  await setDoc(doc(db,"usuarios",uid),{
+   uid:uid,
+   nome:pedido.nome||"Nome não informado",
+   email:pedido.email||"",
+   perfil:"consultor",
+   ativo:true
+  });
+
+  await updateDoc(doc(db,"solicitacoes",uid),{
+   status:"aprovada"
+  });
+
+  alert("Acesso aprovado com sucesso. O usuário poderá atualizar a página para entrar no calendário.");
+
+ }catch(e){
+  console.error("Erro ao aprovar solicitação:",e);
+  alert("Não foi possível aprovar o acesso.");
+ }
+}
+
+async function recusarSolicitacao(uid){
+ if(perfilAtual!=="admin")return;
+
+ if(!confirm("Deseja recusar esta solicitação de acesso?"))return;
+
+ try{
+  await updateDoc(doc(db,"solicitacoes",uid),{
+   status:"recusada"
+  });
+
+  alert("Solicitação recusada.");
+
+ }catch(e){
+  console.error("Erro ao recusar solicitação:",e);
+  alert("Não foi possível recusar a solicitação.");
+ }
+}
+
+function iniciarEscutaUsuarios(){
+ if(perfilAtual!=="admin")return;
+
+ const lista=el("listaUsuarios");
+
+ pararEscutaUsuarios?.();
+ pararEscutaUsuarios=onSnapshot(
+  collection(db,"usuarios"),
+  snapshot=>{
+   lista.innerHTML="";
+
+   if(snapshot.empty){
+    lista.textContent="Nenhum usuário cadastrado.";
+    return;
+   }
+
+   snapshot.forEach(documento=>{
+    const usuario=documento.data();
+    const item=document.createElement("div");
+    item.className="usuario";
+
+    const nome=document.createElement("strong");
+    nome.textContent=usuario.nome||"Nome não informado";
+
+    const email=document.createElement("div");
+    email.textContent=usuario.email||"";
+
+    const perfil=document.createElement("div");
+    perfil.textContent="Perfil: "+(usuario.perfil||"Não definido");
+
+    const situacao=document.createElement("div");
+    situacao.textContent="Situação: "+(usuario.ativo===true?"Ativo":"Inativo");
+
+        const acoes=document.createElement("div");
+    acoes.className="acoes";
+
+    const alterar=document.createElement("button");
+    alterar.className="acao principal";
+    alterar.type="button";
+    alterar.textContent="Alterar perfil";
+    alterar.onclick=()=>alterarPerfilUsuario(documento.id,usuario);
+
+    const status=document.createElement("button");
+    status.className="acao";
+    status.type="button";
+    status.textContent=usuario.ativo===true?"Desativar":"Ativar";
+    status.onclick=()=>alternarStatusUsuario(documento.id,usuario);
+
+    acoes.append(alterar,status);
+    item.append(nome,email,perfil,situacao,acoes);
+    lista.append(item);
+   });
+  },
+  erro=>{
+   console.error("Erro ao carregar usuários:",erro);
+   lista.textContent="Não foi possível carregar os usuários.";
+  }
+ );
+}
+
+async function alternarStatusUsuario(uid,usuario){
+ if(perfilAtual!=="admin")return;
+
+ if(uid===auth.currentUser?.uid){
+  alert("Você não pode desativar sua própria conta.");
+  return;
+ }
+
+ const novoStatus=usuario.ativo!==true;
+
+ if(!confirm(novoStatus
+  ?"Deseja ativar este usuário?"
+  :"Deseja desativar este usuário?"))return;
+
+ try{
+  await updateDoc(doc(db,"usuarios",uid),{
+   ativo:novoStatus
+  });
+
+  alert(novoStatus
+   ?"Usuário ativado com sucesso."
+   :"Usuário desativado com sucesso.");
+
+ }catch(e){
+  console.error("Erro ao alterar situação:",e);
+  alert("Não foi possível alterar a situação do usuário.");
+ }
+}
+
+async function alterarPerfilUsuario(uid,usuario){
+ if(perfilAtual!=="admin")return;
+
+ if(uid===auth.currentUser?.uid){
+  alert("Você não pode alterar seu próprio perfil.");
+  return;
+ }
+
+ const novoPerfil=prompt(
+  "Digite o novo perfil:\n\nadmin = Administrador\nconsultor = Consultor",
+  usuario.perfil||"consultor"
+ );
+
+ if(novoPerfil===null)return;
+
+ const perfil=novoPerfil.trim().toLowerCase();
+
+ if(!["admin","consultor"].includes(perfil)){
+  alert("Perfil inválido. Digite admin ou consultor.");
+  return;
+ }
+
+ try{
+  await updateDoc(doc(db,"usuarios",uid),{
+   perfil:perfil
+  });
+
+  alert("Perfil alterado com sucesso.");
+
+ }catch(e){
+  console.error("Erro ao alterar perfil:",e);
+  alert("Não foi possível alterar o perfil.");
+ }
+}
+
+
 
 onAuthStateChanged(auth, async user=>{
  if(pararEscuta){
@@ -618,8 +874,10 @@ onAuthStateChanged(auth, async user=>{
  if(!user){
   usuarioAtual=null;
   perfilAtual=null;
+  solicitacaoAtual=null;
   eventos={};
   carregandoEventos=false;
+  administrarBtn.hidden=true;
   statusEl.textContent="Entre com sua conta Google para acessar o Vivrê.";
   loginBtn.hidden=false;
   logoutBtn.hidden=true;
@@ -627,11 +885,23 @@ onAuthStateChanged(auth, async user=>{
   if(selecionada)mostrarDetalhes();
   return;
  }
+  
+  if(pararEscutaSolicitacoes){
+   pararEscutaSolicitacoes();
+   pararEscutaSolicitacoes=null;
+  }
 
+  if(pararEscutaUsuarios){
+   pararEscutaUsuarios();
+   pararEscutaUsuarios=null;
+  }
+  
  usuarioAtual=null;
  perfilAtual=null;
+ solicitacaoAtual=null;
  eventos={};
  carregandoEventos=true;
+ administrarBtn.hidden=true;
  statusEl.textContent="Verificando suas permissões...";
  loginBtn.hidden=true;
  logoutBtn.hidden=false;
@@ -644,22 +914,65 @@ onAuthStateChanged(auth, async user=>{
   if(auth.currentUser?.uid!==user.uid)return;
 
   if(!usuarioSnap.exists()){
-   throw new Error("Esta conta Google não possui cadastro autorizado no Vivrê.");
+   const solicitacaoRef=doc(db,"solicitacoes",user.uid);
+   const solicitacaoSnap=await getDoc(solicitacaoRef);
+
+   if(auth.currentUser?.uid!==user.uid)return;
+
+   if(!solicitacaoSnap.exists()){
+    await setDoc(solicitacaoRef,{
+     uid:user.uid,
+     nome:user.displayName||"Nome não informado",
+     email:user.email||"",
+     status:"pendente",
+     data:new Date().toISOString()
+    });
+    solicitacaoAtual={status:"pendente"};
+      }else{
+    solicitacaoAtual=solicitacaoSnap.data();
+
+    if(solicitacaoAtual.status==="recusada"){
+     await updateDoc(solicitacaoRef,{
+      nome:user.displayName||"Nome não informado",
+      email:user.email||"",
+      status:"pendente",
+      data:new Date().toISOString()
+     });
+
+     solicitacaoAtual={status:"pendente"};
+    }
+   }
+
+   carregandoEventos=false;
+   statusEl.textContent=solicitacaoAtual.status==="pendente"
+    ?"Sua solicitação de acesso está aguardando aprovação."
+    :"Sua solicitação de acesso está registrada. Status: "+solicitacaoAtual.status+".";
+   desenhar();
+   if(selecionada)mostrarDetalhes();
+   return;
   }
 
   const dadosUsuario=usuarioSnap.data();
 
   if(dadosUsuario.ativo!==true){
-   throw new Error("Este usuário está inativo no Vivrê.");
+   carregandoEventos=false;
+   statusEl.textContent="Seu cadastro no Vivrê está inativo. Procure o administrador.";
+   desenhar();
+   if(selecionada)mostrarDetalhes();
+   return;
   }
 
   if(!["admin","consultor"].includes(dadosUsuario.perfil)){
-   throw new Error("O perfil deste usuário não é válido.");
+   carregandoEventos=false;
+   statusEl.textContent="O perfil deste usuário não é válido. Procure o administrador.";
+   desenhar();
+   if(selecionada)mostrarDetalhes();
+   return;
   }
 
   usuarioAtual=user;
   perfilAtual=dadosUsuario.perfil;
-   administrarBtn.hidden=perfilAtual!=="admin";
+  administrarBtn.hidden=perfilAtual!=="admin";
 
   statusEl.textContent=perfilAtual==="admin"
    ?"Acesso de administrador."
@@ -694,12 +1007,12 @@ onAuthStateChanged(auth, async user=>{
   perfilAtual=null;
   eventos={};
   carregandoEventos=false;
+  administrarBtn.hidden=true;
   statusEl.textContent=e.message||"Não foi possível verificar suas permissões.";
-  loginBtn.hidden=false;
-  logoutBtn.hidden=true;
+  loginBtn.hidden=true;
+  logoutBtn.hidden=false;
   desenhar();
   if(selecionada)mostrarDetalhes();
-  signOut(auth).catch(console.error);
  }
 });
 
