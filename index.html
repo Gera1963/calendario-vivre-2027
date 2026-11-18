@@ -530,6 +530,16 @@ const statusEl=el("acessoStatus");
 const loginBtn=el("entrarGoogle");
 const logoutBtn=el("sairGoogle");
   const administrarBtn=el("administrarAcessos");
+  const adminOverlay=el("adminOverlay");
+const fecharAdmin=el("fecharAdmin");
+
+administrarBtn.onclick=()=>{
+ adminOverlay.classList.add("aberto");
+};
+
+fecharAdmin.onclick=()=>{
+ adminOverlay.classList.remove("aberto");
+};
 
 provider.setCustomParameters({prompt:"select_account"});
 
