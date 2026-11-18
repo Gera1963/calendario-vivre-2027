@@ -199,8 +199,23 @@ main{padding:8px 18px 12px}
 /* Acesso seguro e sincronização em nuvem */
 .acesso{max-width:1440px;margin:0 auto;padding:9px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#fff;border-bottom:1px solid var(--linha);font-size:13px;color:var(--roxo-escuro)}
 .acesso .grupo{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.acesso button{border:1px solid var(--roxo);background:var(--roxo);color:#fff;border-radius:9px;padding:8px 13px;font:inherit;font-weight:700;cursor:pointer}
-.acesso button.secundario{background:#fff;color:var(--roxo-escuro)}
+.acesso button{
+ border:1px solid var(--roxo);
+ background:var(--roxo);
+ color:#fff;
+ border-radius:9px;
+ padding:9px 15px;
+ min-height:38px;
+ font:inherit;
+ font-weight:700;
+ cursor:pointer;
+ transition:background .18s ease, transform .18s ease;
+}
+.acesso button.secundario{
+ background:#fff;
+ color:var(--roxo-escuro);
+ border-color:var(--lilas-borda);
+}
 @media(max-width:700px){.acesso{padding:8px 10px;font-size:12px}.acesso button{padding:8px 10px}}
   /* Organização visual do painel administrativo */
 
