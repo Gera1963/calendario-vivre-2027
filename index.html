@@ -603,6 +603,7 @@ onAuthStateChanged(auth, async user=>{
 
   usuarioAtual=user;
   perfilAtual=dadosUsuario.perfil;
+   administrarBtn.hidden=perfilAtual!=="admin";
 
   statusEl.textContent=perfilAtual==="admin"
    ?"Acesso de administrador."
