@@ -86,7 +86,35 @@ button:focus-visible,.celula:focus-visible{outline:3px solid #b99bd4;outline-off
  .celula{min-height:77px;padding:6px 4px}.numero{font-size:16px;margin-bottom:6px}
  .marcacao{font-size:10px;gap:4px;margin:4px 0}.marcacao .ponto{width:7px;height:7px}
  .mais{font-size:9px;margin-left:11px}
- .overlay{align-items:flex-end;padding:0}.modal{border-radius:18px 18px 0 0;width:100%;max-height:82vh;overflow:auto}.modal-topo{padding:15px 17px}.modal-topo strong{font-size:18px}.modal-corpo{padding:14px 17px 22px}
+ .overlay{
+ align-items:center;
+ padding:12px;
+}
+
+.modal{
+ border-radius:18px;
+ width:100%;
+ max-height:90vh;
+ display:flex;
+ flex-direction:column;
+ overflow:hidden;
+}
+
+.modal-topo{
+ padding:15px 17px;
+ flex-shrink:0;
+}
+
+.modal-topo strong{
+ font-size:18px;
+}
+
+.modal-corpo{
+ padding:18px 20px 20px;
+ overflow-y:auto;
+ flex:1;
+ min-height:0;
+}modal-corpo{padding:14px 17px 22px}
  .acoes{gap:7px}.acao{padding:10px 12px;font-size:13px}
 }
 @media(max-width:390px){.logo{width:45%}.ano{font-size:21px}.mes h1{font-size:23px;min-width:132px}.celula{min-height:68px}.marcacao{font-size:9px}}
@@ -200,7 +228,19 @@ main{padding:8px 18px 12px}
  margin-bottom:5px;
 }
 
-#listaUsuarios .usuario>div{
+#listaUsuarios .usuario{
+ display:flex;
+ flex-wrap:wrap;
+ align-items:center;
+ justify-content:space-between;
+ gap:12px;
+}
+
+#listaUsuarios .usuario>strong{
+ flex:1 1 100%;
+}
+
+#listaUsuarios .usuario>div:not(.acoes){
  color:#78658b;
  font-size:13px;
  margin:4px 0;
@@ -209,8 +249,9 @@ main{padding:8px 18px 12px}
 #listaUsuarios .usuario .acoes{
  display:flex;
  flex-wrap:wrap;
+ justify-content:flex-end;
  gap:8px;
- margin-top:12px;
+ margin-left:auto;
 }
   
 </style>
