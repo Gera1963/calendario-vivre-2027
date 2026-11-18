@@ -173,6 +173,46 @@ main{padding:8px 18px 12px}
 .acesso button{border:1px solid var(--roxo);background:var(--roxo);color:#fff;border-radius:9px;padding:8px 13px;font:inherit;font-weight:700;cursor:pointer}
 .acesso button.secundario{background:#fff;color:var(--roxo-escuro)}
 @media(max-width:700px){.acesso{padding:8px 10px;font-size:12px}.acesso button{padding:8px 10px}}
+  /* Organização visual do painel administrativo */
+
+#listaUsuarios h3{
+ margin:24px 0 12px;
+ padding-bottom:9px;
+ border-bottom:2px solid var(--lilas-borda);
+ color:var(--roxo);
+ font-size:17px;
+ font-weight:700;
+}
+
+#listaUsuarios .usuario{
+ background:#fff;
+ border:1px solid var(--lilas-borda);
+ border-radius:12px;
+ padding:15px;
+ margin:10px 0;
+ box-shadow:0 3px 10px rgba(67,45,80,.05);
+}
+
+#listaUsuarios .usuario strong{
+ display:block;
+ color:var(--roxo-escuro);
+ font-size:16px;
+ margin-bottom:5px;
+}
+
+#listaUsuarios .usuario>div{
+ color:#78658b;
+ font-size:13px;
+ margin:4px 0;
+}
+
+#listaUsuarios .usuario .acoes{
+ display:flex;
+ flex-wrap:wrap;
+ gap:8px;
+ margin-top:12px;
+}
+  
 </style>
 </head>
 <body>
@@ -739,6 +779,7 @@ async function recusarSolicitacao(uid){
  }
 }
 
+
 function iniciarEscutaUsuarios(){
  if(perfilAtual!=="admin")return;
 
@@ -755,42 +796,76 @@ function iniciarEscutaUsuarios(){
     return;
    }
 
+   const usuarios=[];
    snapshot.forEach(documento=>{
-    const usuario=documento.data();
-    const item=document.createElement("div");
-    item.className="usuario";
-
-    const nome=document.createElement("strong");
-    nome.textContent=usuario.nome||"Nome não informado";
-
-    const email=document.createElement("div");
-    email.textContent=usuario.email||"";
-
-    const perfil=document.createElement("div");
-    perfil.textContent="Perfil: "+(usuario.perfil||"Não definido");
-
-    const situacao=document.createElement("div");
-    situacao.textContent="Situação: "+(usuario.ativo===true?"Ativo":"Inativo");
-
-        const acoes=document.createElement("div");
-    acoes.className="acoes";
-
-    const alterar=document.createElement("button");
-    alterar.className="acao principal";
-    alterar.type="button";
-    alterar.textContent="Alterar perfil";
-    alterar.onclick=()=>alterarPerfilUsuario(documento.id,usuario);
-
-    const status=document.createElement("button");
-    status.className="acao";
-    status.type="button";
-    status.textContent=usuario.ativo===true?"Desativar":"Ativar";
-    status.onclick=()=>alternarStatusUsuario(documento.id,usuario);
-
-    acoes.append(alterar,status);
-    item.append(nome,email,perfil,situacao,acoes);
-    lista.append(item);
+    usuarios.push({
+     uid:documento.id,
+     dados:documento.data()
+    });
    });
+
+   const administradores=usuarios
+    .filter(u=>u.dados.perfil==="admin")
+    .sort((a,b)=>(a.dados.nome||"").localeCompare(b.dados.nome||"","pt-BR"));
+
+   const consultores=usuarios
+    .filter(u=>u.dados.perfil==="consultor")
+    .sort((a,b)=>(a.dados.nome||"").localeCompare(b.dados.nome||"","pt-BR"));
+
+   function mostrarGrupo(titulo,grupo){
+    if(!grupo.length)return;
+
+    const cabecalho=document.createElement("h3");
+    cabecalho.textContent=titulo;
+    lista.append(cabecalho);
+
+    grupo.forEach(u=>{
+     const usuario=u.dados;
+     const item=document.createElement("div");
+     item.className="usuario";
+
+     const nome=document.createElement("strong");
+     nome.textContent=usuario.nome||"Nome não informado";
+
+     const email=document.createElement("div");
+     email.textContent=usuario.email||"";
+
+     const perfil=document.createElement("div");
+     perfil.textContent="Perfil: "+usuario.perfil;
+
+     const situacao=document.createElement("div");
+     situacao.textContent="Situação: "+(usuario.ativo===true?"Ativo":"Inativo");
+
+     const acoes=document.createElement("div");
+     acoes.className="acoes";
+
+      const editarNome=document.createElement("button");
+editarNome.className="acao";
+editarNome.type="button";
+editarNome.textContent="Editar nome";
+editarNome.onclick=()=>alterarNomeUsuario(u.uid,usuario);
+      
+     const alterar=document.createElement("button");
+     alterar.className="acao principal";
+     alterar.type="button";
+     alterar.textContent="Alterar perfil";
+     alterar.onclick=()=>alterarPerfilUsuario(u.uid,usuario);
+
+     const status=document.createElement("button");
+     status.className="acao";
+     status.type="button";
+     status.textContent=usuario.ativo===true?"Desativar":"Ativar";
+     status.onclick=()=>alternarStatusUsuario(u.uid,usuario);
+
+     acoes.append(editarNome,alterar,status);
+     item.append(nome,email,perfil,situacao,acoes);
+     lista.append(item);
+    });
+   }
+
+   mostrarGrupo("Administradores",administradores);
+   mostrarGrupo("Consultores",consultores);
+
   },
   erro=>{
    console.error("Erro ao carregar usuários:",erro);
@@ -798,6 +873,7 @@ function iniciarEscutaUsuarios(){
   }
  );
 }
+
 
 async function alternarStatusUsuario(uid,usuario){
  if(perfilAtual!=="admin")return;
@@ -862,7 +938,35 @@ async function alterarPerfilUsuario(uid,usuario){
   alert("Não foi possível alterar o perfil.");
  }
 }
+async function alterarNomeUsuario(uid,usuario){
+ if(perfilAtual!=="admin")return;
 
+ const novoNome=prompt(
+  "Digite o nome deste usuário:",
+  usuario.nome||""
+ );
+
+ if(novoNome===null)return;
+
+ const nome=novoNome.trim();
+
+ if(!nome){
+  alert("O nome não pode ficar vazio.");
+  return;
+ }
+
+ try{
+  await updateDoc(doc(db,"usuarios",uid),{
+   nome:nome
+  });
+
+  alert("Nome alterado com sucesso.");
+
+ }catch(e){
+  console.error("Erro ao alterar nome:",e);
+  alert("Não foi possível alterar o nome do usuário.");
+ }
+}
 
 
 onAuthStateChanged(auth, async user=>{
