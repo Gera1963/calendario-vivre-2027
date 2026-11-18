@@ -270,6 +270,10 @@ main{padding:8px 18px 12px}
 /* Cartões de solicitações de acesso */
 
 #listaSolicitacoes .solicitacao{
+ display:grid;
+ grid-template-columns:minmax(0,1fr) auto;
+ gap:5px 16px;
+ align-items:center;
  background:#F7F4EF;
  border:1px solid var(--lilas-borda);
  border-radius:12px;
@@ -297,11 +301,48 @@ main{padding:8px 18px 12px}
  margin:7px 0;
 }
 
-#listaSolicitacoes .solicitacao>span{
+#listaSolicitacoes .solicitacao>.situacao{
  display:inline-block;
+ background:#FFF0D6;
+ color:#93621D;
+ border:1px solid #E8C98F;
+ border-radius:20px;
+ padding:4px 10px;
  font-size:12px;
- margin-top:4px;
-}  
+ font-weight:700;
+}
+
+  #listaSolicitacoes .solicitacao>strong{
+ grid-column:1;
+ grid-row:1;
+}
+
+#listaSolicitacoes .solicitacao>.situacao{
+ grid-column:2;
+ grid-row:1;
+ justify-self:end;
+}
+
+  #listaSolicitacoes .solicitacao .acoes{
+ grid-column:2;
+ grid-row:2 / span 2;
+ display:flex;
+ flex-direction:column;
+ align-items:stretch;
+ justify-content:flex-start;
+ gap:8px;
+ margin:0;
+}
+
+  #listaSolicitacoes .solicitacao>div:not(.acoes){
+ grid-column:1;
+ margin:2px 0;
+}
+
+#listaSolicitacoes .solicitacao>p{
+ grid-column:1;
+ margin:5px 0;
+}
   
 /* Janela exclusiva de administração */
 
@@ -818,8 +859,9 @@ async function iniciarEscutaSolicitacoes(){
      ?new Date(pedido.data).toLocaleString("pt-BR")
      :"Data não informada";
 
-    const situacao=document.createElement("span");
-    situacao.textContent=pedido.status||"Pendente";
+const situacao=document.createElement("span");
+situacao.className="situacao";
+situacao.textContent=pedido.status||"Pendente";
 
     item.append(nome,email,data,situacao);
 
@@ -831,13 +873,13 @@ async function iniciarEscutaSolicitacoes(){
      const aprovar=document.createElement("button");
      aprovar.className="acao principal";
      aprovar.type="button";
-     aprovar.textContent="Aprovar acesso";
+     aprovar.textContent="Aprovar";
      aprovar.onclick=()=>aprovarSolicitacao(documento.id,pedido);
 
      const recusar=document.createElement("button");
      recusar.className="acao";
      recusar.type="button";
-     recusar.textContent="Recusar solicitação";
+     recusar.textContent="Recusar";
      recusar.onclick=()=>recusarSolicitacao(documento.id);
 
      acoes.append(aprovar,recusar);
