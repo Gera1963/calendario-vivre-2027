@@ -1301,7 +1301,7 @@ onAuthStateChanged(auth, async user=>{
     const dados=snapshot.data();
     const mapa=dados.eventos;
     eventos=mapa&&typeof mapa==="object"&&!Array.isArray(mapa)?mapa:{};
-    statusEl.textContent="Calendário sincronizado";
+    statusEl.textContent="Calendário sincronizado — Perfil: "+perfilAtual;
    }else{
     eventos={};
     statusEl.textContent="Documento do calendário não encontrado.";
