@@ -254,17 +254,57 @@ main{padding:8px 18px 12px}
  grid-column:1;
  color:#78658b;
  font-size:13px;
- margin:4px 0;
+ margin:2px 0;
+}
+
+#listaUsuarios .usuario>.perfil-badge,
+#listaUsuarios .usuario>.status-badge{
+ grid-column:1;
 }
 
 #listaUsuarios .usuario .acoes{
  grid-column:2;
- grid-row:1 / span 4;
+ grid-row:1 / span 5;
  display:flex;
  flex-direction:column;
  align-items:stretch;
- gap:8px;
+ gap:7px;
  margin:0;
+}
+
+  #listaUsuarios .perfil-badge,
+#listaUsuarios .status-badge{
+ display:inline-block;
+ width:fit-content;
+ padding:4px 10px;
+ border-radius:20px;
+ font-size:12px;
+ font-weight:700;
+ margin:3px 0;
+}
+
+#listaUsuarios .perfil-badge.admin{
+ background:#EEE5F7;
+ color:#68458A;
+ border:1px solid #D8C5E9;
+}
+
+#listaUsuarios .perfil-badge.consultor{
+ background:#E3EFFB;
+ color:#356A9A;
+ border:1px solid #C3D9F0;
+}
+
+#listaUsuarios .status-badge.ativo{
+ background:#E3F3E8;
+ color:#34764A;
+ border:1px solid #C4E2CD;
+}
+
+#listaUsuarios .status-badge.inativo{
+ background:#F9E6E6;
+ color:#984848;
+ border:1px solid #EBCACA;
 }
 
 /* Cartões de solicitações de acesso */
@@ -992,12 +1032,14 @@ function iniciarEscutaUsuarios(){
      const email=document.createElement("div");
      email.textContent=usuario.email||"";
 
-     const perfil=document.createElement("div");
-     perfil.textContent="Perfil: "+usuario.perfil;
+    const perfil=document.createElement("span");
+perfil.className="perfil-badge "+(usuario.perfil==="admin"?"admin":"consultor");
+perfil.textContent=usuario.perfil==="admin"?"Admin":"Consultor";
 
-     const situacao=document.createElement("div");
-     situacao.textContent="Situação: "+(usuario.ativo===true?"Ativo":"Inativo");
-
+const situacao=document.createElement("span");
+situacao.className="status-badge "+(usuario.ativo===true?"ativo":"inativo");
+situacao.textContent=usuario.ativo===true?"Ativo":"Inativo";
+      
      const acoes=document.createElement("div");
      acoes.className="acoes";
 
