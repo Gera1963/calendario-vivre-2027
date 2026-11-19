@@ -362,6 +362,66 @@ main{padding:8px 18px 12px}
  font-weight:700;
 }
 
+  /* Histórico compacto de solicitações */
+
+#listaSolicitacoes .subtitulo-lista{
+ display:block;
+ margin:20px 0 8px;
+ padding-bottom:7px;
+ border-bottom:1px solid var(--lilas-borda);
+ color:var(--roxo);
+ font-size:15px;
+ font-weight:700;
+}
+
+#listaSolicitacoes .historico-solicitacao{
+ display:grid;
+ grid-template-columns:minmax(0,1fr) auto;
+ align-items:center;
+ gap:2px 12px;
+ padding:8px 4px;
+ border-bottom:1px solid var(--lilas-borda);
+}
+
+#listaSolicitacoes .historico-solicitacao>strong{
+ grid-column:1;
+ grid-row:1;
+ color:var(--roxo-escuro);
+ font-size:13px;
+ margin:0;
+}
+
+#listaSolicitacoes .historico-email{
+ grid-column:1;
+ grid-row:2;
+ color:#78658b;
+ font-size:12px;
+ overflow-wrap:anywhere;
+}
+
+#listaSolicitacoes .historico-status{
+ grid-column:2;
+ grid-row:1 / span 2;
+ justify-self:end;
+ padding:4px 9px;
+ border-radius:20px;
+ font-size:11px;
+ font-weight:700;
+ white-space:nowrap;
+}
+
+#listaSolicitacoes .historico-status.aprovada{
+ background:#E3F3E8;
+ color:#34764A;
+ border:1px solid #C4E2CD;
+}
+
+#listaSolicitacoes .historico-status.recusada{
+ background:#F9E6E6;
+ color:#984848;
+ border:1px solid #EBCACA;
+}
+
   #listaSolicitacoes .solicitacao>strong{
  grid-column:1;
  grid-row:1;
@@ -872,7 +932,8 @@ getRedirectResult(auth).catch(e=>{
  console.error("Erro no retorno do login:",e);
 });
 
-async function iniciarEscutaSolicitacoes(){
+async 
+function iniciarEscutaSolicitacoes(){
  if(perfilAtual!=="admin")return;
 
  const lista=el("listaSolicitacoes");
@@ -894,29 +955,53 @@ async function iniciarEscutaSolicitacoes(){
     return;
    }
 
+   const pendentes=[];
+   const historico=[];
+
    snapshot.forEach(documento=>{
     const pedido=documento.data();
-    const item=document.createElement("div");
-    item.className="solicitacao";
-
-    const nome=document.createElement("strong");
-    nome.textContent=pedido.nome||"Nome não informado";
-
-    const email=document.createElement("div");
-    email.textContent=pedido.email||"";
-
-    const data=document.createElement("div");
-    data.textContent=pedido.data
-     ?new Date(pedido.data).toLocaleString("pt-BR")
-     :"Data não informada";
-
-const situacao=document.createElement("span");
-situacao.className="situacao";
-situacao.textContent=(pedido.status||"pendente").toLowerCase().replace(/^./,letra=>letra.toUpperCase());
-
-    item.append(nome,email,data,situacao);
 
     if(pedido.status==="pendente"){
+     pendentes.push({
+      id:documento.id,
+      pedido:pedido
+     });
+    }else{
+     historico.push({
+      id:documento.id,
+      pedido:pedido
+     });
+    }
+   });
+
+   if(pendentes.length){
+    const tituloPendentes=document.createElement("strong");
+    tituloPendentes.className="subtitulo-lista";
+    tituloPendentes.textContent="Pendentes";
+    lista.append(tituloPendentes);
+
+    pendentes.forEach(registro=>{
+     const pedido=registro.pedido;
+     const item=document.createElement("div");
+     item.className="solicitacao";
+
+     const nome=document.createElement("strong");
+     nome.textContent=pedido.nome||"Nome não informado";
+
+     const email=document.createElement("div");
+     email.textContent=pedido.email||"";
+
+     const data=document.createElement("div");
+     data.textContent=pedido.data
+      ?new Date(pedido.data).toLocaleString("pt-BR")
+      :"Data não informada";
+
+     const situacao=document.createElement("span");
+     situacao.className="situacao";
+     situacao.textContent="Pendente";
+
+     item.append(nome,email,data,situacao);
+
      const acoes=document.createElement("div");
      acoes.className="acoes";
      acoes.style.justifyContent="flex-end";
@@ -925,20 +1010,56 @@ situacao.textContent=(pedido.status||"pendente").toLowerCase().replace(/^./,letr
      aprovar.className="acao principal";
      aprovar.type="button";
      aprovar.textContent="Aprovar";
-     aprovar.onclick=()=>aprovarSolicitacao(documento.id,pedido);
+     aprovar.onclick=()=>aprovarSolicitacao(registro.id,pedido);
 
      const recusar=document.createElement("button");
      recusar.className="acao";
      recusar.type="button";
      recusar.textContent="Recusar";
-     recusar.onclick=()=>recusarSolicitacao(documento.id);
+     recusar.onclick=()=>recusarSolicitacao(registro.id);
 
      acoes.append(aprovar,recusar);
      item.append(acoes);
-    }
 
-    lista.append(item);
-   });
+     lista.append(item);
+    });
+   }
+
+   if(historico.length){
+    historico.sort((a,b)=>
+     new Date(b.pedido.data||0)-new Date(a.pedido.data||0)
+    );
+
+    const tituloHistorico=document.createElement("strong");
+    tituloHistorico.className="subtitulo-lista";
+    tituloHistorico.textContent="Histórico";
+    lista.append(tituloHistorico);
+
+    historico.forEach(registro=>{
+     const pedido=registro.pedido;
+
+     const item=document.createElement("div");
+     item.className="historico-solicitacao";
+
+     const nome=document.createElement("strong");
+     nome.textContent=pedido.nome||"Nome não informado";
+
+     const email=document.createElement("div");
+     email.className="historico-email";
+     email.textContent=pedido.email||"";
+
+     const situacao=document.createElement("span");
+     situacao.className="historico-status "+pedido.status;
+     situacao.textContent=pedido.status==="aprovada"
+      ?"Aprovada"
+      :pedido.status==="recusada"
+       ?"Recusada"
+       :pedido.status||"Desconhecida";
+
+     item.append(nome,email,situacao);
+     lista.append(item);
+    });
+   }
   },
   erro=>{
    console.error("Erro ao carregar solicitações:",erro);
@@ -946,6 +1067,7 @@ situacao.textContent=(pedido.status||"pendente").toLowerCase().replace(/^./,letr
   }
  );
 }
+
 
 async function aprovarSolicitacao(uid,pedido){
  if(perfilAtual!=="admin")return;
