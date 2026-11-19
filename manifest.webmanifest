@@ -1,0 +1,12 @@
+{
+  "id": "/calendario-vivre-2027/",
+  "name": "Calendário Vivrê 2027",
+  "short_name": "Vivrê",
+  "description": "Calendário de programação do espaço Vivrê.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#faf8fb",
+  "theme_color": "#f7f3f8",
+  "prefer_related_applications": false
+}
