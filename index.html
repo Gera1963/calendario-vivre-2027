@@ -849,7 +849,7 @@ function mostrarDetalhes(){
  com.forEach(x=>{
   const b=document.createElement("div");
   b.className="bloco";
-  b.innerHTML='<i class="bolao"></i><div><strong></strong>${x.descricao?'<p></p>':''}</div>';
+  b.innerHTML='<i class="bolao"></i><div><strong></strong></div>';
   b.querySelector("strong").textContent=x.nome;
 
   if(x.descricao){
