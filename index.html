@@ -69,6 +69,39 @@ button:focus-visible,.celula:focus-visible{outline:3px solid #b99bd4;outline-off
 .bolao.evento{background:var(--ouro)}
 .bloco strong{font-size:17px;color:var(--roxo-escuro)}
 .bloco p{margin:4px 0 0;font-size:14px;line-height:1.4;color:#675a6d}
+  /* Comandos individuais de cada evento */
+.bloco.evento-com-acoes{
+ display:grid;
+ grid-template-columns:16px minmax(0,1fr) auto;
+ align-items:center;
+ gap:10px;
+}
+
+.bloco.evento-com-acoes .bolao{
+ margin-top:0;
+}
+
+.evento-acoes{
+ display:flex;
+ align-items:center;
+ gap:7px;
+}
+
+.evento-acoes .acao{
+ padding:7px 10px;
+ font-size:12px;
+ white-space:nowrap;
+}
+
+@media(max-width:520px){
+ .bloco.evento-com-acoes{
+  grid-template-columns:16px minmax(0,1fr);
+ }
+ .bloco.evento-com-acoes .evento-acoes{
+  grid-column:2;
+  margin-top:6px;
+ }
+}
 .separador{border:0;border-top:1px solid var(--linha);margin:10px 0}
 .acoes{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}
 .acao{
@@ -788,41 +821,142 @@ el("anoMais").onclick=()=>{
 };
   
   function abrir(a,m,d){selecionada={a,m,d};editando=null;el("tituloModal").textContent=`${String(d).padStart(2,"0")} de ${meses[m]} de ${a}`;mostrarDetalhes();el("formulario").classList.remove("aberto");el("overlay").classList.add("aberto")}
+
 function mostrarDetalhes(){
- const k=chave(selecionada.a,selecionada.m,selecionada.d),com=comemorativas[k]||[],ev=eventos[k]||[],lista=el("lista");lista.innerHTML="";
- if(!usuarioAtual){lista.innerHTML="<div class=\"vazio\">Entre com a conta Google autorizada para consultar e administrar os eventos do Vivrê.</div>";el("acoes").innerHTML="";return;}
- if(carregandoEventos){lista.innerHTML="<div class=\"vazio\">Carregando eventos compartilhados...</div>";el("acoes").innerHTML="";return;}
- if(!com.length&&!ev.length)lista.innerHTML='<div class="vazio">Nenhuma data comemorativa ou evento cadastrado neste dia.</div>';
- com.forEach(x=>{const b=document.createElement("div");b.className="bloco";b.innerHTML=`<i class="bolao"></i><div><strong></strong>${x.descricao?'<p></p>':''}</div>`;b.querySelector("strong").textContent=x.nome;if(x.descricao)b.querySelector("p").textContent=x.descricao;lista.appendChild(b)});
- if(com.length&&ev.length){const hr=document.createElement("hr");hr.className="separador";lista.appendChild(hr)}
- ev.forEach((x,i)=>{const b=document.createElement("div");b.className="bloco";b.innerHTML='<i class="bolao evento"></i><div><strong></strong></div>';b.querySelector("strong").textContent=x.nome;b.querySelector(".bolao").style.background=x.cor||"#e6b54c";lista.appendChild(b)});
- const acoes=el("acoes");acoes.innerHTML="";
-  if(perfilAtual==="admin"){
- ev.forEach((x,i)=>{const ed=document.createElement("button");ed.className="acao";ed.textContent="Editar";ed.onclick=()=>formEvento(i);acoes.appendChild(ed);const del=document.createElement("button");del.className="acao perigo";del.textContent="Excluir";del.onclick=()=>pedirConfirmacao(async()=>{
-  try{
-   const listaAtual=Array.isArray(eventos[k])?[...eventos[k]]:[];
-   if(i<0||i>=listaAtual.length)throw new Error("O evento selecionado não foi encontrado na lista atual.");
-   listaAtual.splice(i,1);
-   const eventosAtualizados={...eventos};
-   if(listaAtual.length)eventosAtualizados[k]=listaAtual;
-   else delete eventosAtualizados[k];
-   if(!usuarioAtual||perfilAtual!=="admin")throw new Error("Apenas administradores podem excluir eventos.");
-   await updateDoc(eventosRef,{
-  eventos:eventosAtualizados,
-  atualizadoEm:new Date().toISOString(),
-  atualizadoPor:usuarioAtual.email
-});
-   eventos=eventosAtualizados;
-   mostrarDetalhes();
-   desenhar();
-  }catch(e){
-   console.error("Falha ao excluir evento:",e);
-   alert("Não foi possível excluir no calendário compartilhado. Confira a conexão e as permissões.");
+ const k=chave(selecionada.a,selecionada.m,selecionada.d);
+ const com=comemorativas[k]||[];
+ const ev=eventos[k]||[];
+ const lista=el("lista");
+
+ lista.innerHTML="";
+
+ if(!usuarioAtual){
+  lista.innerHTML="<div class=\"vazio\">Entre com a conta Google autorizada para consultar e administrar os eventos do Vivrê.</div>";
+  el("acoes").innerHTML="";
+  return;
+ }
+
+ if(carregandoEventos){
+  lista.innerHTML="<div class=\"vazio\">Carregando eventos compartilhados...</div>";
+  el("acoes").innerHTML="";
+  return;
+ }
+
+ if(!com.length&&!ev.length){
+  lista.innerHTML='<div class="vazio">Nenhuma data comemorativa ou evento cadastrado neste dia.</div>';
+ }
+
+ com.forEach(x=>{
+  const b=document.createElement("div");
+  b.className="bloco";
+  b.innerHTML='<i class="bolao"></i><div><strong></strong>${x.descricao?'<p></p>':''}</div>';
+  b.querySelector("strong").textContent=x.nome;
+
+  if(x.descricao){
+   b.querySelector("div").innerHTML="";
+   const titulo=document.createElement("strong");
+   titulo.textContent=x.nome;
+   const descricao=document.createElement("p");
+   descricao.textContent=x.descricao;
+   b.querySelector("div").append(titulo,descricao);
   }
- });acoes.appendChild(del)});
- const novo=document.createElement("button");novo.className="acao principal";novo.textContent="+ Novo evento";novo.onclick=()=>formEvento(null);acoes.appendChild(novo);
+
+  lista.appendChild(b);
+ });
+
+ if(com.length&&ev.length){
+  const hr=document.createElement("hr");
+  hr.className="separador";
+  lista.appendChild(hr);
+ }
+
+ ev.forEach((x,i)=>{
+  const b=document.createElement("div");
+  const admin=perfilAtual==="admin";
+
+  b.className=admin
+   ?"bloco evento-com-acoes"
+   :"bloco";
+
+  b.innerHTML=
+   '<i class="bolao evento"></i>'+
+   '<div><strong></strong></div>'+
+   (admin?'<div class="evento-acoes"></div>':"");
+
+  b.querySelector("strong").textContent=x.nome;
+  b.querySelector(".bolao").style.background=x.cor||"#e6b54c";
+
+  if(admin){
+   const acoesEvento=b.querySelector(".evento-acoes");
+
+   const ed=document.createElement("button");
+   ed.className="acao";
+   ed.textContent="Editar";
+   ed.onclick=()=>formEvento(i);
+   acoesEvento.appendChild(ed);
+
+   const del=document.createElement("button");
+   del.className="acao perigo";
+   del.textContent="Excluir";
+
+   del.onclick=()=>pedirConfirmacao(async()=>{
+    try{
+     const listaAtual=Array.isArray(eventos[k])
+      ?[...eventos[k]]
+      :[];
+
+     if(i<0||i>=listaAtual.length){
+      throw new Error("O evento selecionado não foi encontrado na lista atual.");
+     }
+
+     listaAtual.splice(i,1);
+
+     const eventosAtualizados={...eventos};
+
+     if(listaAtual.length){
+      eventosAtualizados[k]=listaAtual;
+     }else{
+      delete eventosAtualizados[k];
+     }
+
+     if(!usuarioAtual||perfilAtual!=="admin"){
+      throw new Error("Apenas administradores podem excluir eventos.");
+     }
+
+     await updateDoc(eventosRef,{
+      eventos:eventosAtualizados,
+      atualizadoEm:new Date().toISOString(),
+      atualizadoPor:usuarioAtual.email
+     });
+
+     eventos=eventosAtualizados;
+     mostrarDetalhes();
+     desenhar();
+
+    }catch(e){
+     console.error("Falha ao excluir evento:",e);
+     alert("Não foi possível excluir no calendário compartilhado. Confira a conexão e as permissões.");
+    }
+   });
+
+   acoesEvento.appendChild(del);
+  }
+
+  lista.appendChild(b);
+ });
+
+ const acoes=el("acoes");
+ acoes.innerHTML="";
+
+ if(perfilAtual==="admin"){
+  const novo=document.createElement("button");
+  novo.className="acao principal";
+  novo.textContent="+ Novo evento";
+  novo.onclick=()=>formEvento(null);
+  acoes.appendChild(novo);
+ }
 }
-  }
+
 function formEvento(i){editando=i;const ev=i===null?null:eventos[chave(selecionada.a,selecionada.m,selecionada.d)][i];el("nomeEvento").value=ev?.nome||"";corEscolhida=ev?.cor||"#e6b54c";el("corEvento").value=corEscolhida;el("formulario").classList.add("aberto");el("nomeEvento").focus()}
 
 el("fechar").onclick=()=>{
