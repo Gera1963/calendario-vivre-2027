@@ -760,6 +760,7 @@ const firebaseApp=initializeApp(firebaseConfig), auth=getAuth(firebaseApp), db=g
 const meses=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const dias=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 let ano=2027, mes=0, selecionada=null, editando=null, corEscolhida="#e6b54c";
+  let visaoAtual="mensal";
 const comemorativas={
  "2027-01-01":[{nome:"Confraternização Universal",tipo:"feriado",descricao:"Feriado nacional."}],
  "2027-01-06":[{nome:"Dia de Reis",tipo:"discreta"}],
@@ -921,9 +922,10 @@ function desenhar(){
    linha.textContent=x.nome;cel.appendChild(linha);
   });
   if(com.length+ev.length>2){const mais=document.createElement("span");mais.className="mais";mais.textContent=`+${com.length+ev.length-2} item(ns)`;cel.appendChild(mais)}
-  cel.addEventListener("click",()=>abrir(a,m,d));g.appendChild(cel);
+cel.addEventListener("click",()=>abrir(a,m,d));g.appendChild(cel);
+  }
+  if(visaoAtual==="anual")desenharVisaoAnual();
  }
-}
 
   
 function desenharVisaoAnual(){
@@ -987,6 +989,28 @@ function desenharVisaoAnual(){
 
  painel.appendChild(grade);
 }
+
+  
+function alternarVisao(tipo){
+ const anual=tipo==="anual";
+
+ visaoAtual=anual?"anual":"mensal";
+
+ document.querySelector(".barra").hidden=anual;
+ el("calendarioMensal").hidden=anual;
+ el("visaoAnual").hidden=!anual;
+
+ el("btnVisaoMensal").classList.toggle("ativo",!anual);
+ el("btnVisaoAnual").classList.toggle("ativo",anual);
+
+ el("btnVisaoMensal").setAttribute("aria-pressed",String(!anual));
+ el("btnVisaoAnual").setAttribute("aria-pressed",String(anual));
+
+ if(anual)desenharVisaoAnual();
+}
+
+el("btnVisaoMensal").onclick=()=>alternarVisao("mensal");
+el("btnVisaoAnual").onclick=()=>alternarVisao("anual");
 
 el("mesMenos").onclick=()=>{
  mes--;
