@@ -568,7 +568,71 @@ main{padding:8px 18px 12px}
  overscroll-behavior:contain;
  -webkit-overflow-scrolling:touch;
 }
+
   
+/* Visão Anual — planejamento dos meses */
+.grade-anual{
+ display:grid;
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:12px;
+}
+
+.mes-anual{
+ background:#f3edf7;
+ border:1px solid var(--lilas-borda);
+ border-radius:13px;
+ padding:12px;
+ min-height:90px;
+}
+
+.mes-anual h2{
+ margin:0 0 10px;
+ color:var(--roxo-escuro);
+ font-size:16px;
+ font-weight:750;
+}
+
+.tarja-evento-anual{
+ display:block;
+ width:100%;
+ margin:6px 0 0;
+ padding:6px 8px;
+ border-radius:6px;
+ font-size:12px;
+ font-weight:750;
+ line-height:1.2;
+ overflow-wrap:anywhere;
+}
+
+.mes-anual-vazio{
+ color:#9a8ea3;
+ font-size:12px;
+}
+
+@media(max-width:700px){
+ .grade-anual{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+ }
+ .mes-anual{
+  padding:9px;
+  min-height:78px;
+ }
+ .mes-anual h2{
+  font-size:14px;
+ }
+ .tarja-evento-anual{
+  font-size:11px;
+  padding:5px 6px;
+ }
+}
+
+@media(max-width:360px){
+ .grade-anual{
+  grid-template-columns:1fr;
+ }
+}
+
 </style>
 </head>
 <body>
