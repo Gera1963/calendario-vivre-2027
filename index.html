@@ -28,6 +28,53 @@ header{background:linear-gradient(110deg,#fff 0%,#f7f1fa 65%,#fdf8ed 100%);borde
 .ano button:hover,.mes button:hover{background:var(--lilas)}
 main{max-width:1440px;margin:0 auto;padding:18px 24px 28px}
 .barra{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+  
+/* Alternância entre visão mensal e anual */
+.alternador-visao{
+ display:flex;
+ align-items:center;
+ gap:4px;
+ width:fit-content;
+ margin:0 0 14px;
+ padding:4px;
+ background:var(--lilas);
+ border:1px solid var(--lilas-borda);
+ border-radius:11px;
+}
+
+.alternador-visao button{
+ border:1px solid transparent;
+ background:transparent;
+ color:var(--roxo-escuro);
+ padding:8px 16px;
+ border-radius:8px;
+ font:inherit;
+ font-size:13px;
+ font-weight:700;
+ cursor:pointer;
+}
+
+.alternador-visao button.ativo{
+ background:var(--roxo);
+ border-color:var(--roxo);
+ color:#fff;
+}
+
+.alternador-visao button:not(.ativo):hover{
+ background:#fff;
+ border-color:var(--lilas-borda);
+}
+
+@media(max-width:520px){
+ .alternador-visao{
+  width:100%;
+  margin-bottom:10px;
+ }
+ .alternador-visao button{
+  flex:1;
+ }
+}
+
 .mes{display:flex;align-items:center;gap:14px}
 .mes h1{font-size:clamp(25px,3vw,36px);margin:0;color:var(--roxo-escuro);min-width:190px}
 .legenda{display:flex;gap:20px;flex-wrap:wrap;font-size:14px;color:var(--roxo-escuro)}
