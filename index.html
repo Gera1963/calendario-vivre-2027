@@ -65,15 +65,17 @@ main{max-width:1440px;margin:0 auto;padding:18px 24px 28px}
  border-color:var(--lilas-borda);
 }
 
+
 @media(max-width:520px){
  .alternador-visao{
-  width:100%;
-  margin-bottom:10px;
+  width:fit-content;
+  margin:0;
  }
  .alternador-visao button{
-  flex:1;
+  flex:0 0 auto;
  }
 }
+
 
 .mes{display:flex;align-items:center;gap:14px}
 .mes h1{font-size:clamp(25px,3vw,36px);margin:0;color:var(--roxo-escuro);min-width:190px}
@@ -292,8 +294,41 @@ main{padding:8px 18px 12px}
 
 
 /* Acesso seguro e sincronização em nuvem */
-.acesso{max-width:1440px;margin:0 auto;padding:9px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:#fff;border-bottom:1px solid var(--linha);font-size:13px;color:var(--roxo-escuro)}
-.acesso .grupo{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+
+.acesso{
+ max-width:1440px;
+ margin:0 auto;
+ padding:9px 24px;
+ display:grid;
+ grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+ align-items:center;
+ gap:12px;
+ background:#fff;
+ border-bottom:1px solid var(--linha);
+ font-size:13px;
+ color:var(--roxo-escuro);
+}
+
+.acesso .grupo{
+ display:flex;
+ align-items:center;
+ gap:10px;
+ flex-wrap:wrap;
+}
+
+.acesso>.grupo:first-child{
+ justify-self:start;
+}
+
+.acesso>.grupo:last-child{
+ justify-self:end;
+}
+
+.acesso>.alternador-visao{
+ justify-self:center;
+ margin:0;
+}
+
 .acesso button{
  border:1px solid var(--roxo);
  background:var(--roxo);
@@ -306,12 +341,48 @@ main{padding:8px 18px 12px}
  cursor:pointer;
  transition:background .18s ease, transform .18s ease;
 }
+
 .acesso button.secundario{
  background:#fff;
  color:var(--roxo-escuro);
  border-color:var(--lilas-borda);
 }
-@media(max-width:700px){.acesso{padding:8px 10px;font-size:12px}.acesso button{padding:8px 10px}}
+
+@media(max-width:700px){
+ .acesso{
+  grid-template-columns:minmax(0,1fr);
+  grid-template-areas:
+   "status"
+   "alternador"
+   "acoes";
+  justify-items:center;
+  gap:8px;
+  padding:8px 10px;
+  font-size:12px;
+ }
+
+ .acesso>.grupo:first-child{
+  grid-area:status;
+  justify-self:center;
+  text-align:center;
+ }
+
+ .acesso>.alternador-visao{
+  grid-area:alternador;
+  justify-self:center;
+  margin:0;
+ }
+
+ .acesso>.grupo:last-child{
+  grid-area:acoes;
+  justify-self:center;
+ }
+
+ .acesso button{
+  padding:8px 10px;
+ }
+}
+
   /* Organização visual do painel administrativo */
 
 #listaUsuarios h3{
@@ -581,7 +652,7 @@ main{padding:8px 18px 12px}
  background:#f3edf7;
  border:1px solid var(--lilas-borda);
  border-radius:13px;
- padding:12px;
+ padding:7px 12px 12px;
  min-height:90px;
 }
 
@@ -615,7 +686,7 @@ main{padding:8px 18px 12px}
   gap:8px;
  }
  .mes-anual{
-  padding:9px;
+  padding:6px 9px 10px;
   min-height:78px;
  }
  .mes-anual h2{
@@ -646,6 +717,7 @@ main{padding:8px 18px 12px}
  <div class="grupo">
   <span id="acessoStatus">Conectando ao calendário...</span>
  </div>
+ 
  <div class="grupo">
   <button id="administrarAcessos" type="button" hidden>Administrar acessos</button>
   <button id="entrarGoogle" type="button">Entrar com Google</button>
