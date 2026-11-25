@@ -924,6 +924,70 @@ function desenhar(){
   cel.addEventListener("click",()=>abrir(a,m,d));g.appendChild(cel);
  }
 }
+
+  
+function desenharVisaoAnual(){
+ const painel=el("visaoAnual");
+ if(!painel)return;
+
+ painel.innerHTML="";
+
+ const grade=document.createElement("div");
+ grade.className="grade-anual";
+
+ meses.forEach((nomeMes,indice)=>{
+  const cartao=document.createElement("section");
+  cartao.className="mes-anual";
+
+  const titulo=document.createElement("h2");
+  titulo.textContent=nomeMes;
+  cartao.appendChild(titulo);
+
+  const prefixo=
+   `${ano}-${String(indice+1).padStart(2,"0")}-`;
+
+  const chavesMes=Object.keys(eventos||{})
+   .filter(k=>k.startsWith(prefixo))
+   .sort();
+
+  chavesMes.forEach(k=>{
+   const lista=Array.isArray(eventos[k])
+    ?eventos[k]
+    :[];
+
+   lista.forEach(item=>{
+    if(!item||!item.nome)return;
+
+    const tarja=document.createElement("div");
+    tarja.className="tarja-evento-anual";
+
+    const cor=typeof item.cor==="string" &&
+     /^#[0-9a-fA-F]{6}$/.test(item.cor)
+      ?item.cor
+      :"#e6b54c";
+
+    tarja.style.backgroundColor=cor;
+
+    const rgb=cor.match(/[\da-f]{2}/gi)
+     .slice(0,3)
+     .map(v=>parseInt(v,16));
+
+    tarja.style.color=
+     ((rgb[0]*299+rgb[1]*587+rgb[2]*114)/1000)>=150
+      ?"#30283a"
+      :"#ffffff";
+
+    tarja.textContent=item.nome;
+    cartao.appendChild(tarja);
+   });
+  });
+
+  grade.appendChild(cartao);
+ });
+
+ painel.appendChild(grade);
+}
+
 el("mesMenos").onclick=()=>{
  mes--;
  if(mes<0){mes=11;ano--;}
